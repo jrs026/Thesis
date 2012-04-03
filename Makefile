@@ -1,11 +1,15 @@
 all: thesis.pdf
 
-# just rebuild everytime
+# Just rebuild everytime, only display messages for the last step
 %.pdf: %.tex refs.bib
-	pdflatex $*
+	pdflatex -quiet $*
 	bibtex $*
-	pdflatex $*
+	pdflatex -quiet $*
 	pdflatex $*
 
 clean:
 	rm *.aux *.bbl *.blg *.pdf *.log
+
+# Keeps the .pdf file
+push:
+	rm *.aux *.bbl *.blg *.log
