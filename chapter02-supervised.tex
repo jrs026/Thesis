@@ -1,9 +1,11 @@
 \chapter{Discriminative Sentence Alignment}
 \label{chap:supervised}
 
-In this chapter we will describe a discriminative model for performing sentence
-alignment on comparable document pairs. We use Wikipedia as our source for
-comparable documents.
+In this chapter we will describe a discriminative models for performing sentence
+alignment on comparable document pairs. We use Wikipedia as our first source for
+comparable documents, and use a conditional random field \citep{Lafferty01} as
+the sentence alignment model. We also apply a discriminative monotonic alignment model to
+comparable documents mined from the Web as described by \citet{Uszkoreit10}.
 
 \section{Wikipedia as a Comparable Corpus}
 \label{sec:wiki}
@@ -90,7 +92,7 @@ able to capture this phenomenon. For both parallel and comparable
 corpora, global sentence alignments have been used, though the
 alignments were monotonic
 \citep{Gale93,Moore02,Zhao02}.
-Our model is a first order linear chain Conditional Random Field
+Our model is a first order linear chain conditional random field
 (CRF) \citep{Lafferty01}. The set of source and
 target sentences are observed. For each {\em source} sentence, we
 have a hidden variable indicating the corresponding {\em target}
@@ -440,3 +442,58 @@ articles. In every case, training on medium data plus Wikipedia
 extracts led to equal or better translation quality than the large
 system alone. Furthermore, adding the Wikipedia data to the large
 data condition still made substantial improvements.
+
+\section{Comparable documents from the Web}
+
+Multilingual websites have often been used as a source of parallel data
+\citep{Resnik03,Huang05,Shi06}. Most approaches for finding potential parallel
+documents rely on metadata rather than the content of the websites. 
+This metadata may include links which appear to point to alternate versions of the same
+page in another language, the URLs of the websites, or their HTML structure.
+Another approach for finding multilingual websites is given by
+\citet{Uszkoreit10}, who translate all non-English web pages into English using
+their MT system and then use monolingual document similarity measures to find
+comparable document pairs. \citet{Uszkoreit10} also describe a sentence
+alignment model which is applied to the comparable document pairs. In this work,
+we will instead use a discriminative, monotonic alignment model to align these document
+pairs. As this requires labeled sentence alignment data for both training and
+evaluation, we also describe an annotation tool for monotonic alignments which 
+allows $m:n$ sentence matchings.
+
+\subsection{Data collection}
+
+\begin{figure}
+\begin{center}
+%\includegraphics{images/google_annotate.png}
+\caption{The annotation interface for sentence alignment.
+\NoteJS{Take or adapt the figure from the Google slides.}
+}
+\label{fig:google_annotate}
+\end{center}
+\end{figure}
+
+We obtain a set of Japanese-English document pairs using the method described by
+\citet{Uszkoreit10}. From this set, we randomly selected roughly 1000 document
+pairs to be annotated. The annotators were presented with the interface shown in
+Figure \ref{fig:google_annotate}. For each document pair we asked if
+the two documents are in the correct language pair, and if one of the documents
+appeared to be machine translated. If the language pair was correct and the
+documents appeared to be translated by a human, then the annotators aligned the
+sentences in the document.
+
+The annotation tool is closely related to the monotonic alignment model in how
+it operates. The user is asked whether or not the first sentences in each
+document are parallel. If they are, the user selects ``Match'', the sentences
+are aligned, and the user is then prompted about the next two sentences. If the
+sentence pair presented to the annotator is not parallel, they will select
+either ``Skip Left'' or ``Skip Right'', which advance the current sentence in
+the document on the left or right. These three operations correspond to the
+operations used in the monotonic alignment model, and the annotator's sequence
+of operations can be directly used as training data.
+
+% Talk about merging
+% Data collection results
+
+\subsection{Monotonic alignment model}
+% Much overlap with the unsupervised model
+\subsection{Results}
