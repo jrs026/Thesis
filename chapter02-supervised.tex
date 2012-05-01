@@ -237,8 +237,6 @@ features were used.}
 \label{table:featurecompare}
 \end{table*}
 
-
-
 For our seed parallel data, we used the Europarl corpus
 \citep{Koehn05} for Spanish and German and the
 JRC-Aquis corpus for Bulgarian, plus the article titles for
@@ -462,9 +460,11 @@ allows $m:n$ sentence matchings.
 
 \subsection{Data collection}
 
+\subsubsection{Annotation Tool}
+
 \begin{figure}
 \begin{center}
-%\includegraphics{images/google_annotate.png}
+\includegraphics[scale=0.5]{images/google_annotate.png}
 \caption{The annotation interface for sentence alignment.
 \NoteJS{Take or adapt the figure from the Google slides.}
 }
@@ -491,9 +491,144 @@ the document on the left or right. These three operations correspond to the
 operations used in the monotonic alignment model, and the annotator's sequence
 of operations can be directly used as training data.
 
-% Talk about merging
-% Data collection results
+The tool also allows the annotator to specify arbitrary $n:m$ sentence
+alignments throught the ``Merge Left'' and ``Merge Right'' buttons. The merge
+actions append the immediately following sentences to the currently selected
+sentences, which can then be aligned.
+
+\subsubsection{Data Collection Results}
+
+Since the data we have annotated using this tool is taken from the HTML source
+of webpages, and converted to plain text and segmented into sentences
+automatically, the ``Merge'' buttons are often used to correct errors in
+sentence segmentation. This results in a few large $n:m$ alignments, though most
+alignments are still $1:1$. Table \ref{table:merge_stats} breaks down the
+alignments that the annotators have provided.
+
+\begin{table*}[ht!]
+\begin{center}
+\begin{tabular}{|l||l|l|l|l|l|}
+\hline
+Alignment Type & 1:1 & 2:1 & 1:2 & 2:2 & Other\\
+\hline
+Percentage & 95.8\% & 1.70\% & 1.28\% & 0.159\% & 1.12\%\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Statistics on the types of $n:m$ alignments found in the annotated
+data.}
+\label{table:merge_stats}
+\end{table*}
 
 \subsection{Monotonic alignment model}
-% Much overlap with the unsupervised model
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{images/google_model.png}
+\caption{The discriminative model for monotonic sentence alignment. The
+highlighted path represents a possible alignment between the two documents.}
+\label{fig:mono_disc}
+\end{center}
+\end{figure}
+
+Our sentence alignment model is a discriminatively trained monotonic alignment
+model. An illustration of this model is given in Figure \ref{fig:mono_disc}.
+Formally, we represent the model as a weighted finite-state automata (WFSA) with features
+that fire on each arc as described in \citet{Eisner02}. Specifically, in this
+work we use a weighted finite-state transducer (WFST) to describe our alignment
+model. A WFST includes a set of states
+$\mathbb{Q}$, source and target alphabets $\Sigma_S$ and $\Sigma_T$,
+transition function $\delta : \mathbb{Q} \times \Sigma_S \times \Sigma_T
+\longrightarrow \mathbb{Q} \times W$,
+and start and end states $\mathbb{S}$ and $\mathbb{F}$.
+
+\begin{align*}
+\mathbb{Q} &=& \{q_{i,j} \mid 0 \leq i \leq |\vec{S}|, 0 \leq j \leq |\vec{T}|\}\\
+\Sigma_S &=& \{\epsilon\} \cup \{S_i \mid 0 \leq i < |\vec{S}|\}\\
+\Sigma_T &=& \{\epsilon\} \cup \{T_j \mid 0 \leq j < |\vec{T}|\}\\
+\delta(q_{i, j}) &=& \{(q_{i+1, j}, (S_i, \epsilon), \vec{f}(S_i, \epsilon)\cdot\vec{w}),\\
+& & (q_{i, j+1}, (\epsilon, T_j), \vec{f}(\epsilon, T_j)\cdot\vec{w}),\\
+& & (q_{i+1,j+1}, (S_i, T_j), \vec{f}(S_i, T_j)\cdot\vec{w})\}\\
+\mathbb{S} &=& q_{0,0}\\
+\mathbb{F} &=& q_{|\vec{S}|, |\vec{T}|}
+\end{align*}
+
+\NoteJS{The transition function still needs some work, and I need to mention
+semirings. A section on notation should help with this.}
+
+The FSM representing the set of possible alignments for a document pair 
+$(\vec{S}, \vec{T})$ has $(|\vec{S}|+1)\cdot(|\vec{T}|+1)$ states. These states
+correspond to positions in the source and target documents. Each state has at
+most three transitions, which either skip the current source sentence, skip the
+current target sentence, or align the current source and target sentences. Note
+that these operations directly match the actions used by the annotators to
+generate the labeled alignments, so they may be directly used as an observed
+path through the WFSA. This automata only contains $1:1$ alignments, though
+$n:m$ alignments could be added to this machine through additional arcs on each
+state.
+
+The weights on each of the arcs $a$ come from the dot product of the features which
+fire on that arc and the weight vector $\vec{w}$. 
+The total weight of a path $\pi = a_0,a_1,\dots,a_n$ is the dot product of all
+features firing on each arc and the weight vector. Using this property we can
+now define a probability distribution over paths through this WFST:
+
+\begin{align*}
+p(\pi|\vec{S}, \vec{T}) &=& \frac{\sum_{a \in \pi}
+\exp \vec{f}(a)\cdot\vec{w}}{\sum_{\pi'}\sum_{a \in \pi'}\exp \vec{f}(a)\cdot\vec{w}}
+\end{align*}
+
+The denominator is the sum of the weights of all paths through the WFST.
+We train our model to maximize the probability of the observed training data:
+
+\begin{align*}
+\argmax{\vec{w}} \sum_{(\pi,\vec{S},\vec{T})} p(\pi|\vec{S},\vec{T})
+\end{align*}
+
+The gradient of this objective can be computed using standard finite-state
+algorithms \citep{Eisner02}.
+
+\subsubsection{Features}
+\label{sec:mono_feats}
+We chose to use a simple set of features which are mostly based on
+bag-of-words similarity measures. First, we have bias features which fire on all
+``matching'' and ``mismatching'' arcs (arcs which emit $(S_i, T_j)$ are matching
+arcs, and the mismatching arcs emit either $(\epsilon, T_j)$ or $(S_i,
+\epsilon)$). For the matching arcs, we project the source sentence through a
+weighted bilingual dictionary and compute cosine similarity with the target
+sentence (and the same is done in reverse).\NoteJS{I don't have the exact set of
+features used in the experiments from my Google slides.}
+
+We also experimented with a set of first-order features, which look at the
+previous arc taken in the WFST. This is made possible by splitting each state
+$q_{i,j}$ into $q_{i,j,+}$ and $q_{i,j,-}$. ``Match'' transitions lead to
+$q_{i,j,+}$ while ``mismatch'' transitions lead to $q_{i,j,-}$. Since the states
+are now recording the last operation, the arcs leaving these states have
+features which fire on two matches in a row, for example. The intuition behind
+adding these features is that matches often follow other matches, and a similar
+trend is present for mismatches.
+
 \subsection{Results}
+
+We compare our discriminatively trained model against a hand-tuned monotonic
+alignment model. Our results are shown in Table \ref{table:google_results}.
+
+\begin{table*}
+\begin{center}
+\begin{tabular}{|l||l|l|l|}
+\hline
+Model & Precision & Recall & F1\\
+\hline
+\hline
+Baseline & 63.9\% & 95.0\% & 76.4\%\\
+\hline
+Discriminative Aligner & {\bf 66.0\%} & 94.4\% & {\bf 77.7}\%\\
+\hline
++First Order Features & 65.1\% & {\bf 95.2\%} & 77.3\%\\
+\hline
+\end{tabular}
+\caption{Precision, recall and F1 score measured on a held out set of aligned
+Japanese-English document pairs.}
+\label{table:google_results}
+\end{center}
+\end{table*}
