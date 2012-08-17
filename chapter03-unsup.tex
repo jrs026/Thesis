@@ -315,4 +315,79 @@ unlabeled data, measuring performance after each iteration.
 
 \subsection{Results}
 
+\section{Experiments (Alternate)}
+\label{sec:experiments_all}
+In this section, we explore the relationship between the amount of initial
+parallel data, the quality of the extracted parallel data, and the end-to-end
+machine translation quality. We start with Spanish-English as our language pair,
+since this is a high resource language pair, and we can always simulate a low
+resource setting by restricting the amount of data used.
+
+Table \ref{table:esen_parallel} lists the corpora used as initial parallel data,
+as well as the data mined from Wikipedia. ``Wiki@X'' refers to the parallel
+sentences extracted with a classification threshold of $X$ (a lower
+classification threshold will allow more sentences to be extracted).
+% The data was chosen to match the data used in \citet{Koehn10} % Check citation
+
+\begin{table*}[ht]
+\begin{center}
+\begin{tabular}{|rr||r|r|r|}
+\hline
+      &                & Spanish        & English & English (Monolingual) \\
+\hline
+\textbf{Europarl} \
+      & Sentences     & 1.79M       & 1.79M   & 1.79M   \\
+      & Tokens     & 46.8M       & 44.7M   & 44.7M   \\
+\hline
+\textbf{News Commentary} \
+      & Sentences     & 98.6K       & 98.6K & 126K      \\
+      & Tokens     & 2.45M       & 2.10M  & 261M    \\
+\hline
+\textbf{United Nations} \
+      & Sentences     & 6.22M       & 6.22M & 6.22M     \\
+      & Tokens     & 191M       & 164M & 164M     \\
+\hline
+\textbf{News} \
+      & Sentences     & N/A       & N/A & 48.7M     \\
+      & Tokens     & N/A       & N/A & 989M     \\
+\hline
+\textbf{Wiki@0.5} \
+      & Sentences     & 1.60M       & 1.60M & 14.8M     \\
+      & Tokens     & 44.8M       & 51.0M & 286M     \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Statistics for the initial parallel/monolingual data used in training
+baseline MT systems and for extracting new parallel data. The monolingual data
+is only used for language modeling, not for extracting parallel sentences.}
+\label{table:esen_parallel}
+\end{table*}
+
+\begin{table*}[ht]
+\begin{center}
+\begin{tabular}{|r||r|r|}
+\hline
+      & WMT10        & Wikipedia \\
+\hline
+\textbf{Europarl Only} \
+      & 24.75       & ---    \\
+\textbf{+Wiki LM} \
+      & 26.91       & ---    \\
+\textbf{+Wiki Parallel (@0.5)} \
+      & 27.41       & ---    \\
+\hline
+\textbf{All Initial Corpora} \
+      & 28.51       & ---    \\
+\textbf{+Wiki LM} \
+      & 28.55       & ---    \\
+\textbf{+Wiki Parallel (@0.5)} \
+      &        & ---    \\
+\hline
+\end{tabular}
+\end{center}
+\caption{BLEU scores for systems trained on different sets of parallel and
+monolingual data.}
+\label{table:esen_bleu}
+\end{table*}
+
 \section{Conclusions}
