@@ -323,11 +323,13 @@ machine translation quality. We start with Spanish-English as our language pair,
 since this is a high resource language pair, and we can always simulate a low
 resource setting by restricting the amount of data used.
 
-Table \ref{table:esen_parallel} lists the corpora used as initial parallel data,
-as well as the data mined from Wikipedia. ``Wiki@X'' refers to the parallel
-sentences extracted with a classification threshold of $X$ (a lower
-classification threshold will allow more sentences to be extracted).
-% The data was chosen to match the data used in \citet{Koehn10} % Check citation
+\subsection{Datasets}
+For our initial parallel data, we use the parallel and monolingual corpora
+available for the 2010 Machine Translation Workshop's shared task (WMT10). For
+the Spanish-English task, the WMT10 data includes Europarl version 5 (we use
+version 6 in our experiments\NoteJS{This may change to 7}) \citep{Koehn05}, the United Nations
+parallel text, and parallel and monolingual news corpora. Table \ref{table:esen_parallel}
+lists the corpora used in detail.
 
 \begin{table*}[ht]
 \begin{center}
@@ -339,21 +341,17 @@ classification threshold will allow more sentences to be extracted).
       & Sentences     & 1.79M       & 1.79M   & 1.79M   \\
       & Tokens     & 46.8M       & 44.7M   & 44.7M   \\
 \hline
-\textbf{News Commentary} \
-      & Sentences     & 98.6K       & 98.6K & 126K      \\
-      & Tokens     & 2.45M       & 2.10M  & 261M    \\
-\hline
 \textbf{United Nations} \
       & Sentences     & 6.22M       & 6.22M & 6.22M     \\
       & Tokens     & 191M       & 164M & 164M     \\
 \hline
+\textbf{News Commentary} \
+      & Sentences     & 98.6K       & 98.6K & 126K      \\
+      & Tokens     & 2.45M       & 2.10M  & 261M    \\
+\hline
 \textbf{News} \
       & Sentences     & N/A       & N/A & 48.7M     \\
       & Tokens     & N/A       & N/A & 989M     \\
-\hline
-\textbf{Wiki@0.5} \
-      & Sentences     & 1.60M       & 1.60M & 14.8M     \\
-      & Tokens     & 44.8M       & 51.0M & 286M     \\
 \hline
 \end{tabular}
 \end{center}
@@ -362,6 +360,61 @@ baseline MT systems and for extracting new parallel data. The monolingual data
 is only used for language modeling, not for extracting parallel sentences.}
 \label{table:esen_parallel}
 \end{table*}
+
+This data is used both for training the parallel sentence extractor, and as the
+initial data in the MT system.
+
+\subsection{Supervised Parallel Sentence Extraction}
+In order to extract parallel sentence pairs from Wikipedia, we used a simplified
+version of the approach described in \citet{Smith10}.
+
+Using the initial parallel data and a small amount of annotated Spanish-English
+Wikipedia articles, we extracted sentence pairs from all of the Spanish-English
+Wikipedia articles which were identified as sharing a topic through Wikipedia's
+Interwiki link system. This gave us a set of 433 thousand comparable document
+pairs. For all pairs of sentences in each document pair, we applied a binary
+classifier to determine whether or not the sentence pair was parallel.
+
+Table \ref{table:esen_wiki_parallel} lists the parallel corpora extracted from
+Spanish-English article pairs from Wikipedia. ``Wiki@X'' refers to the parallel
+sentences extracted with a classification threshold of $X$ (a lower
+classification threshold will allow more sentences to be extracted). The
+monolingual data was taken from the English side of all Spanish-English document
+pairs, making it consistent across conditions.
+
+\begin{table*}[ht]
+\begin{center}
+\begin{tabular}{|rr||r|r|r|}
+\hline
+      &                & Spanish        & English & English (Monolingual) \\
+\hline
+\textbf{Wiki@0.75} \
+      & Sentences     &   ---     & --- & 14.8M     \\
+      & Tokens     &  ---      & --- & 286M    \\
+\hline
+\textbf{Wiki@0.5} \
+      & Sentences     & 1.60M       & 1.60M & 14.8M     \\
+      & Tokens     & 44.8M       & 51.0M & 286M     \\
+\hline
+\textbf{Wiki@0.25} \
+      & Sentences     &   ---     & --- & 14.8M     \\
+      & Tokens     &  ---      & --- & 286M    \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Statistics for parallel corpora extracted from Wikipedia.}
+\label{table:esen_wiki_parallel}
+\end{table*}
+
+\subsection{Results}
+We report end-to-end MT results using the initial parallel data and the
+extracted parallel data from Wikipedia. For our baseline MT system we used the
+phrase-based model included in the Moses toolkit \citet{Koehn07} with all
+options set to the default. % TODO: Cite Edinburgh submission
+
+We used two test sets to evaluate the end-to-end MT performance: the test set
+from WMT10 which was taken from the news domain, and a set of parallel sentences
+from Wikipedia gathered by \citep{Smith10}.
 
 \begin{table*}[ht]
 \begin{center}
@@ -373,20 +426,28 @@ is only used for language modeling, not for extracting parallel sentences.}
       & 24.75       & ---    \\
 \textbf{+Wiki LM} \
       & 26.91       & ---    \\
+\textbf{+Wiki Parallel (@0.75)} \
+      & ---       & ---    \\
 \textbf{+Wiki Parallel (@0.5)} \
       & 27.41       & ---    \\
+\textbf{+Wiki Parallel (@0.25)} \
+      & ---       & ---    \\
 \hline
 \textbf{All Initial Corpora} \
       & 28.51       & ---    \\
 \textbf{+Wiki LM} \
       & 28.55       & ---    \\
+\textbf{+Wiki Parallel (@0.75)} \
+      & ---       & ---    \\
 \textbf{+Wiki Parallel (@0.5)} \
-      &        & ---    \\
+      & 29.23       & ---    \\
+\textbf{+Wiki Parallel (@0.25)} \
+      & ---       & ---    \\
 \hline
 \end{tabular}
 \end{center}
 \caption{BLEU scores for systems trained on different sets of parallel and
-monolingual data.}
+monolingual data before and after adding data from Wikipedia.}
 \label{table:esen_bleu}
 \end{table*}
 
