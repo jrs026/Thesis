@@ -313,6 +313,34 @@ parameters by running five iterations of EM on the parallel sentences from our
 labeled data. Then we run several iterations of EM on both the labeled data and
 unlabeled data, measuring performance after each iteration.
 
-\subsection{Results}
+\subsection{Intrinsic Results}
+
+\subsection{Extrinsic Results}
+\NoteJS{This experiments section takes the new strategy where we start with lots
+of supervision and then see how well we do as we remove data. Hopefully it will
+end with good unsupervised results.}
+The ultimate goal of parallel sentence extraction is to improve the quality of
+end-to-end machine translation. In this section we will measure MT performance
+before and after the extracted parallel sentences are added to the training
+data.
+
+\subsubsection{Corpora}
+\begin{table*}
+\small
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+French & German & Polish & Italian & Dutch & Portuguese & Spanish & Japanese \\
+496K & 488K & 384K & 380K & 357K & 323K & 311K & 252K\\
+\hline
+Russian & Swedish & Finnish & Chinese & Norwegian & Volap\"{u}k & Catalan & Czech \\
+232K & 197K & 146K & 142K & 141K & 106K & 103K & 87K\\
+\hline
+\end{tabular}
+\end{center}
+\caption{The sizes of corpora in tokens and sentences for the Spanish-English
+condition.}
+\label{table:esen_corpora}
+\end{table*}
 
 \section{Conclusions}
