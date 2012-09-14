@@ -313,36 +313,6 @@ parameters by running five iterations of EM on the parallel sentences from our
 labeled data. Then we run several iterations of EM on both the labeled data and
 unlabeled data, measuring performance after each iteration.
 
-\subsection{Intrinsic Results}
-
-\subsection{Extrinsic Results}
-\NoteJS{This experiments section takes the new strategy where we start with lots
-of supervision and then see how well we do as we remove data. Hopefully it will
-end with good unsupervised results.}
-The ultimate goal of parallel sentence extraction is to improve the quality of
-end-to-end machine translation. In this section we will measure MT performance
-before and after the extracted parallel sentences are added to the training
-data.
-
-\subsubsection{Corpora}
-\begin{table*}
-\small
-\begin{center}
-\begin{tabular}{|c|c|c|c|c|c|c|c|}
-\hline
-French & German & Polish & Italian & Dutch & Portuguese & Spanish & Japanese \\
-496K & 488K & 384K & 380K & 357K & 323K & 311K & 252K\\
-\hline
-Russian & Swedish & Finnish & Chinese & Norwegian & Volap\"{u}k & Catalan & Czech \\
-232K & 197K & 146K & 142K & 141K & 106K & 103K & 87K\\
-\hline
-\end{tabular}
-\end{center}
-\caption{The sizes of corpora in tokens and sentences for the Spanish-English
-condition.}
-\label{table:esen_corpora}
-\end{table*}
-
 \section{Experiments (Alternate)}
 \label{sec:experiments_all}
 In this section, we explore the relationship between the amount of initial
@@ -417,16 +387,16 @@ pairs, making it consistent across conditions.
       &                & Spanish        & English & English (Monolingual) \\
 \hline
 \textbf{Wiki@0.75} \
-      & Sentences     &   ---     & --- & 14.8M     \\
-      & Tokens     &  ---      & --- & 286M    \\
+      & Sentences     &   989K     & 989K & 14.8M     \\
+      & Tokens     &  32.0M      & 37.1M & 286M    \\
 \hline
 \textbf{Wiki@0.5} \
       & Sentences     & 1.60M       & 1.60M & 14.8M     \\
       & Tokens     & 44.8M       & 51.0M & 286M     \\
 \hline
 \textbf{Wiki@0.25} \
-      & Sentences     &   ---     & --- & 14.8M     \\
-      & Tokens     &  ---      & --- & 286M    \\
+      & Sentences     &   2.38M     & 2.38M & 14.8M     \\
+      & Tokens     &  70.4M      & 79.6M & 286M    \\
 \hline
 \end{tabular}
 \end{center}
@@ -455,7 +425,7 @@ from Wikipedia gathered by \citep{Smith10}.
 \textbf{+Wiki LM} \
       & 26.91       & ---    \\
 \textbf{+Wiki Parallel (@0.75)} \
-      & ---       & ---    \\
+      & 27.22       & ---    \\
 \textbf{+Wiki Parallel (@0.5)} \
       & 27.41       & ---    \\
 \textbf{+Wiki Parallel (@0.25)} \
@@ -479,4 +449,84 @@ monolingual data before and after adding data from Wikipedia.}
 \label{table:esen_bleu}
 \end{table*}
 
+\section{Supervised Parallel Sentence Extraction with Low Resources}
+In most previous work, a large amount of existing parallel data is used to find
+new parallel sentence pairs in comparable corpora. Here, we explore using
+parallel sentence extraction methods which use far less initial data.
+Specifically, we will only be using information available in Wikipedia:
+Wiktionary translations, the titles of bilingually linked articles, and the text
+of these articles as sources of initial parallel data. We make use of this
+limited data in several ways:
+
+\begin{enumerate}
+\item Treat the Wiktionary entries and article titles as regular parallel data
+and learn the standard word alignment features from this data.
+\item Use the data as a bilingual dictionary to project source language
+sentences into the target language (and vice-versa), and use vector space
+similarity measures to compare the source/target sentences.
+\item Treat punctuation and numeric characters specially by not projecting them
+through the dictionary. This can be done when large amounts of initial data are
+available, but there is less need to.
+\end{enumerate}
+
+In addition, we explore different ways of augmenting the initial data:
+
+\begin{enumerate}
+\item Give each source/target token a vector representation: a bit
+vector with dimensionality equal to the number of comparable document pairs.
+Each bit indicates whether or not the token appears in the comparable document
+pair. This representation places source and target tokens in the same space,
+allowing us to identify words which are translations of one another (see
+\citet{Fung94} for a similar approach).
+\item Create bilingual dictionary entries for the anchor text of hyperlinks
+within Wikipedia and the foreign title of the article they link to.
+\item Use Wiktionary's morphological data to lemmatize tokens of source/target text.
+\end{enumerate}
+
+\subsection{Intrinsic Evaluation}
+We use the annotated comparable documents gathered by \citet{Smith10} as a source of
+training and test data. In addition, we use parallel data as a source of
+annotated sentence pairs, since annotated comparable data is not available for
+many language pairs. We use this data to create three experimental conditions:
+
+\begin{enumerate}
+\item Train on parallel data, test on parallel data.
+\item Train on parallel data, test on comparable data.
+\item Train on comparable data, test on comparable data.
+\end{enumerate}
+
+Ultimately, the classifiers are used on comparable data, so the relationship
+between performance on parallel and comparable data will be explored here.
+
+\subsection{Extrinsic Evaluation}
+We would also like to evaluate performance for languages without any initial
+parallel data. In this scenario, there is no training or test data for the
+sentence pair classifier, so we must either take feature values from classifiers
+trained on other language pairs, or use a single feature and threshold this
+feature's score to extract sentence pairs. % Cite tillmann for the single score method
+
+\subsection{Generalizing Classifiers Across Languages}
+The sentence pair classifiers here use a small set of dense features which are
+independent of the language pair, though computation of the feature values uses
+data that is language pair dependent. It is possible to take feature weights
+trained for one language pair and apply them to another language pair. This is
+desirable because annotated comparable data is only available for a small number
+of language pairs, and while parallel data can be used as a substitute, it does
+not match the test condition as well. In this section, we explore the viability
+of transferring feature weights across language pairs where we do have access to
+annotated comparable data. First, we will examine the two main sources of
+variability: differences in training data, and differences in feature values.
+
+\subsubsection{Feature Values}
+The majority of the features used in the sentence pair classifier make use of
+existing bilingual data in the form of parallel sentences or bilingual
+dictionaries. The amount of data available will vary by language pair, and even
+with identical amounts of data, the distribution of feature values can still
+vary greatly depending on factors such as the morphological complexity of the
+languages involved. Figure \ref{fig:coverage} gives the distribution of the
+coverage feature in Spanish-English and German-English. For languages with
+larger vocabularies, the scores tend to be lower.
+
 \section{Conclusions}
+(Modest gains with large amounts of existing parallel data, ??? gains with
+little existing data)
