@@ -36,8 +36,8 @@
 \usepackage{color}
 
 \newcommand{\remove}[1]{}
-\newcommand{\Note}[1]{}
-%\newcommand{\Note}[1]{\textbf{\large\textcolor{blue}{[#1]}}}
+%\newcommand{\Note}[1]{}
+\newcommand{\Note}[1]{\textbf{\large\textcolor{blue}{[#1]}}}
 \newcommand{\NoteJS}[1]{\Note{#1~--JS}}
 
 \begin{document}
@@ -74,6 +74,13 @@
 
 \setcounter{chapter}{3}
 \include{chapter04-related_work}
+
+\setcounter{chapter}{4}
+\include{chapter05-web}
+
+% TODO: Remove this in the final version
+\setcounter{chapter}{5}
+\include{scraps}
 
 % TODO: Switch back to IEEE for final submission
 %\bibliographystyle{IEEEtran}

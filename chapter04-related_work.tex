@@ -152,6 +152,12 @@ detection. An index is built mapping $n$-grams to documents, and this index is
 used to find a bag-of-$n$-grams score for potentially comparable documents. The
 computation is kept feasible by only creating index entries for rare $n$-grams.
 
+\citet{Ture12} used cross-lingual information retrieval techniques to find
+comparable document pairs in Wikipedia. While Wikipedia already provides
+annotated comparable document pairs through interwiki links, the authors
+consider all possible German-English article pairs as potentially containing
+comparable data.
+
 \subsubsection{Finding Parallel Sentences}
 Once comparable document pairs have been identified, most comparable corpora
 extraction methods will independently judge each sentence pair as parallel or
@@ -172,3 +178,26 @@ pairs based on either a word alignment model or bag-of-words similarity after
 projection through a bilingual lexicon, and tune a threshold on held out data.
 
 % Sub-sentence alignment?
+\section{Temporary: Summaries}
+This is a temporary section containing summaries of related papers. These will
+be integrated into the above sections.
+
+\citet{Dagan93}:
+\citet{Chen00}: (PTMiner) Nothing special done for aligning the sentences in the 
+parallel document pairs, only a method for finding document pairs. The method of
+\citet{Simard93} was used for sentence alignment.
+\citet{Shi06}: (DOM alignment)
+\citet{Abdul-Rauf09}:
+\citet{Ambati10}:
+\citet{Ture11}:
+\citet{Ture12}:
+
+% Fragment alignment (a few missing here, need Munteanu07 citation)
+\subsection{Parallel Fragments}
+In addition to finding full parallel sentences, some researchers have looked for
+parallel fragments within sentence pairs.
+\citet{Munteanu06}: Starts with standard methods for finding candidate sentence
+pairs. Then, computes log-likelihood ratio based scores for pairs of words, and
+does a greedy word alignment based on these scores. (sliding window desc.)
+\citet{Quirk07}:
+\citet{Riesa12}:
