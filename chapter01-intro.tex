@@ -1,43 +1,64 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-Almost all modern SMT systems are trained using a large collection of translated
-sentence pairs known as a parallel corpus. Sources of parallel data include
+Statistical machine translation (SMT) systems are trained using a large collection of translated
+sentence pairs known as a parallel corpus. Common sources of parallel data include
 parliament proceedings, books, and news articles.
 While this data may be abundant for some language pairs, such as
 French/English, it is scarce for most others. In addition, even when parallel
-data is available, it may not match the domain of the data you wish to
-translate, and this can have a large effect on performance \citep{Munteanu05}.
+data is available, it often does not match the domain of the data you wish to
+translate, which hurts performance \citep{Munteanu05}.
 
 The creation of new parallel corpora can be expensive, especially when bilingual
 speakers are rare for the language pair of interest.
 In order to acquire more parallel data without costly human annotation,
-researchers have looked to corpora which may contain some parallel sentences,
-but are not completely parallel. Such corpora are referred to as comparable
-corpora, and examples include multilingual news feeds \citep{Munteanu05} and
-Wikipedia articles \citep{Adafre06,Smith10}. 
-Most work in extracting parallel sentences from
-these corpora assumes an initial bilingual dictionary or an existing parallel
-corpus.
+researchers have looked to multilingual corpora which share some content across languages,
+but are not directly translated. Such corpora are referred to as comparable
+corpora, and examples include multilingual news feeds \citep{Munteanu05},
+Wikipedia articles \citep{Adafre06,Smith10}, and the Web
+\citep{Resnik99,Nie99,Chen00}. 
+%Most work in extracting parallel sentences from
+%these corpora assumes an initial bilingual dictionary or an existing parallel
+%corpus.
 
-On the other hand, there has also been work on aligning sentences in parallel
-corpora where the documents may contain $2:1$ or $1:2$ sentence alignments, or
-there may be large insertions or deletions of sentences \citep{Gale93,Chen93,Moore02}.
-This work, by contrast, does not require existing parallel data or a
+Comparable corpora is a broad term---\citet{Fung04a} give a more
+fine-grained categorization of multilingual corpora:
+%TODO: Make sure this is quoted properly
+\begin{enumerate}
+\item Parallel corpus: A sentence-aligned corpus containing bilingual
+translations of the same document.
+\item Noisy parallel corpus: A corpus containing non-aligned sentences that are
+nevertheless mostly bilingual translations of the same document.
+\item Comparable corpus: A corpus of non-aligned and non-translated documents
+which are topic-aligned.
+\item Quasi-comparable corpus: A multilingual corpus which is not
+sentence-aligned, translated, or topic-aligned
+\end{enumerate}
+As comparable corpora vary greatly in their structure, different methods for finding
+parallel sentences are used in each.
+
+Even corpora which are generally considered as parallel require some amount of
+processing to find parallel sentences. The Canadian Hansards, for example,
+contains $2:1$ and $1:2$ sentence alignments, and
+there may be large insertions or deletions of sentences \citep{Gale93,Chen93}.
+Sentence-aligning these corpora does not require existing parallel data or a
 bilingual dictionary for the language pair of interest. Instead, the structure
 of the documents and the lengths of the sentences are used to determine the
-sentence alignment. Any information about bilingual word correspondence comes
-from the parallel data that is being aligned.
+sentence alignment. For comparable corpora which are topic-aligned but not
+directly translated, lexical information must be used to determine which
+sentence pairs should be aligned \citep{Munteanu05}. When comparable corpora are
+not topic-aligned, other signals are exploited to find plausible document
+alignments \citep{Resnik03}.
 
-In this work, we aim to combine techniques from both parallel and comparable
-sentence alignment to improve the state of the art for parallel sentence
-extraction from comparable corpora. First, we will describe a novel
-discriminative model for aligning sentences in comparable documents.
-We will also describe a model for aligning comparable documents which
-needs only a minimal amount of supervision. Similar to how unsupervised word
-alignment models can learn their parameters from unlabeled data, we aim to learn
-parameters for a sentence alignment model from comparable unaligned documents.
-
+We will examine a representative set of comparable corpora, the Web, Twitter,
+and Wikipedia, describe the different signals used to identify parallel data,
+and demonstrate how extracted parallel data from these corpora improve SMT
+performance across several language pairs and domains. First, we scale up
+previous Web mining methods \citep{Resnik03} to several terabytes of data. We
+also present a novel mining approach for Twitter, making use of metadata unique
+to the microblogging medium. Finally, we introduce a new sentence alignment
+model for mining parallel data from Wikipedia which takes advantage of its
+fine-grained topic alignment.
 
 \section{Sentence Alignment}
 In this section, we will describe our task and notation.
