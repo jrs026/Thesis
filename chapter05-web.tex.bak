@@ -1,0 +1,422 @@
+\chapter{Comparable Corpora: Data Sources and Tools}
+\label{chap:data}
+
+\NoteJS{Tentative title, but the basic idea is for this chapter to include
+descriptions of the datasets being used and descriptions of the tools I've
+written to access them. This includes what we were thinking of as the web
+chapter, as well as information about Wikipedia mining.}
+
+Comparable corpora are multilingual collections of documents which are not
+strictly parallel, but may contain some parallel data. This includes everything
+from multilingual news feeds, which may not even be topic-aligned, to Wikipedia,
+which has fine-grained topic alignment across languages.
+This chapter will describe the sources of comparable data used in this thesis,
+and the software released to process this data. Two sources are used:
+CommonCrawl, a publicly available crawl of the entire Web, and Wikipedia, an
+online collaborative encyclopedia. We conclude by comparing the amount
+of data found in these comparable corpora to existing parallel corpora for
+several language pairs.
+
+\section{CommonCrawl}
+A promising source of parallel data is the Web, as many websites are presented
+in multiple languages. Researchers have been exploring ways to mine the Web for
+parallel data for over a decade \citep{Resnik99,Nie99,Chen00}.
+In this work we are interested in methods for mining parallel data which are
+feasible for researchers in academia to use. One major challenge is access to
+the data - large companies such as Google regularly maintain a crawl of the
+entire Web, but even storing that much data may not be possible on a
+university's local cluster. For this reason we look at the CommonCrawl corpus,
+which is a publicly available crawl of the web created by the CommonCrawl
+foundation.\footnote{{\tt commoncrawl.org}}
+As a baseline approach to both document alignment and sentence alignment, we
+apply the STRAND algorithm \citep{Resnik03} to this dataset.
+
+The CommonCrawl corpus is hosted on Amazon's Simple Storage Service (S3). It can
+be downloaded to a local cluster, but the transfer cost (roughly 10 cents per
+gigabyte\footnote{{\tt http://aws.amazon.com/s3/pricing/}}) is prohibitive. However, the data can be
+accessed freely from Amazon's Elastic Compute Cloud (EC2) or Elastic MapReduce
+(EMR) services. In our pipeline, we perform the first step of identifying
+candidate document pairs using Amazon EMR, download the resulting document
+pairs, and perform the remaining steps on our local cluster. We chose EMR
+because our candidate matching strategy fit naturally into the Map-Reduce
+framework \citep{Dean04}.
+
+\subsection{STRAND Pipeline}
+
+The following is the pipeline we use for our STRAND \citep{Resnik03} baseline:
+
+\begin{enumerate}
+\item {\em Candidate pair selection:} Retrieve candidate document pairs from the
+CommonCrawl corpus
+\item {\em Structural Filtering:}
+  \begin{enumerate}
+  \item Convert the HTML of each document into a sequence of start tags, end tags,
+  and text chunks
+  \item Align the linearized HTML of candidate document pairs
+  \item Decide whether to accept or reject each pair based on features of the
+  alignment
+  \end{enumerate}
+\item {\em Segmentation:} For each text chunk, perform sentence and word
+segmentation
+\item {\em Sentence Alignment:} For each aligned pair of text chunks, perform
+the sentence alignment method of \citet{Gale93}
+\item {\em Sentence Filtering:} Remove sentences which appear to be boilerplate
+\label{enum:strand}
+\end{enumerate}
+
+\paragraph{Candidate Pair Selection}
+Here we describe the Map-Reduce job which identifies candidate parallel
+websites. We adopt a strategy similar to that of \citet{Resnik03} for finding
+candidates in the Internet Archive.
+
+The {\em mapper} operates on each website entry in the CommonCrawl data. It
+scans the URL for some indicator of its language. Specifically, we check for:
+
+\begin{enumerate}
+\item Two/three letter language codes (ISO-639)
+\item Language names in English and the language of origin
+\end{enumerate}
+
+If any of these codes are present in a URL and surrounded by non-alphanumeric
+characters (for example: {\tt www.website.com/fr/}), this will be seen as a
+potential match. The mapper will then output the following (key, value) pair:
+
+\begin{itemize}
+\item Key: {\tt www.website.com/*/}
+\item Value: {\tt www.website.com/fr/}, French, (full website entry)
+\end{itemize}
+
+The {\em reducer} will then recieve all websites mapped to the same
+``language independent'' URL. If two or more websites match, the reducer will
+output all matching document pairs, as long as they are not in the same
+language.
+
+This URL-based matching is a simple and inexpensive solution to the problem of
+finding candidate document pairs. The mapper will discard most, and neither the
+mapper nor the reducer do anything with the HTML of the documents aside from
+reading and writing them. More sophisticated approaches have been used
+\citep{Uszkoreit10,Ture12}, but they may be prohibitively expensive to run on
+Amazon, and the focus of this work is to show that mining parallel data from the
+entire Web can be affordable. 
+
+\paragraph{Structural Filtering}
+A major component of the STRAND system is the alignment of HTML documents. This
+alignment is used to determine which document pairs are actually parallel, and
+if they are, to align pairs of text blocks within the documents.
+
+The first step of structural filtering is to linearize the HTML. This means
+converting the DOM tree into a sequence of start tags, end tags, and chunks of
+text. Some tags (those that may be often found within text, such as ``font'' and
+``a'') are ignored during this step. Next, the tag/chunk sequences are aligned
+using dynamic programming. The objective of the alignment is to maximize the
+number of matching items.
+
+Given this alignment, \citet{Resnik03} define a small set of features which
+indicate the alignment quality. They annotated a set of document pairs as
+parallel or non-parallel, and trained a classifier on this data. We also
+annotated 101 Spanish-English document pairs in this way and trained a
+maximum entropy classifier. However, even when using the best performing subset
+of features, the classifier only performed as well as a naive classifier which
+labeled every document pair as parallel, in both accuracy and F1. For this reason,
+we excluded the classifier from our pipeline.
+
+\paragraph{Segmentation}
+The text chunks from the previous step may contain several sentences, so before
+the sentence alignment step we must perform sentence segmentation. We use the
+Punkt sentence breaker from NLTK \citep{nltk} to perform both sentence and word
+segmentation on each text chunk.
+
+\paragraph{Sentence Alignment}
+For each aligned text chunk pair, we perform sentence alignment using the
+algorithm of \citet{Gale93}.
+
+\paragraph{Sentence Filtering}
+Since we do not perform any boilerplate removal in earlier steps, there are many
+sentence pairs produced by the pipeline which contain menu items or other bits
+of text which are not useful to an SMT system. To remove this data, we prune
+segment pairs unless both segments contain at least 5 tokens composed of
+alphanumeric characters only, and end with punctuation. We also remove any
+sentence pairs which are identical.
+
+\subsection{Results}
+\subsubsection{Intrinsic Evaluation}
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+Language & Precision \\
+\hline
+Spanish & 82\% \\
+\hline
+French & 81\% \\ 
+\hline
+German & 78\% \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Precision on the extracted parallel data for Spanish, French, and
+German (paired with English).}
+\label{tab:intrinsic}
+\end{table}
+
+To evaluate the quality of the parallel data produced , we manually check a set of randomly selected 200 sentence
+pairs for three language pairs. The
+texts are very heterogeneous, covering several topical domains, such as:
+tourism, advertising, technical specifications, finances, e-commerce or
+medicine. 
+For German-English, 78\% of the extracted data represent perfect translations, 4\% are
+paraphrases of each other (convey a similar meaning, but cannot be used for SMT
+training) and 18\% represent misalignments. Furthermore, 22\% of the true
+positives are potentially machine translations, whereas in 13\% of the cases one
+of the sentences contains an extra tail. As for the false positives, 13.5\% of
+them have been caused by language identification errors, the remaining ones
+representing failures in the alignment process. Similar tendencies have been
+observed in the other data sets.
+All in all, the precision of the mining process is on average 80\% for the
+considered language pairs, as Table \ref{tab:intrinsic} shows.
+This analysis suggests that language identification and SMT output
+detection \citep{Venugopal11} may be useful additions to the pipeline.
+
+\subsubsection{Extrinsic Evaluation}
+We applied this baseline to the full 2009-2010 crawl in seven separate
+chunks.\footnote{This was to avoid out-of-memory errors which occurred when
+running on the full crawl in a single experiment.}
+In Table \ref{tab:cc_mt} we show SMT
+experiments before and after adding this data to a baseline.
+In both the baseline and experiments with added data we include the target side of the mined
+parallel data in the language model, to show the improvements are not just
+coming from the additional monolingual data.
+These results show substantial gains on top of an already strong SMT system.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|r||r|r|r|r|r|}
+\hline
+& \textbf{FR-EN} & \textbf{EN-FR} & \textbf{ES-EN} & \textbf{EN-ES} & \textbf{EN-DE}\\
+\hline
+\textbf{Baseline} \
+      & 29.88 & 28.50 & 32.80 & 32.83 & 16.61  \\
+\hline
+\textbf{+Web Data} \
+      & 30.08 & 28.76 & 33.39 & 33.41 & 17.30  \\
+\hline
+\end{tabular}
+\end{center}
+\caption{BLEU scores for several language pairs before and after adding the mined
+parallel data to a baseline system trained on data from WMT 12.}
+\label{tab:cc_mt}
+\end{table}
+
+\section{Wikipedia}
+Wikipedia\footnote{{\tt www.wikipedia.org}} is an online collaborative
+encyclopedia available in over 200 languages. It is part of the larger WikiMedia
+project, which includes other multilingual websites such as Wiktionary and
+Wikinews. It is a promising source of parallel data due to the ``interwiki''
+link structure. Each article has links to articles on the same topic in other
+languages. These are occasionally direct translations, but for the most part
+they are simply topic-aligned.
+
+While this is of course included in the Web, the web mining techniques used in
+general Web mining are not appropriate for this corpus. First, URL matching
+techniques will not work for the majority of bilingual article pairs. Also, the
+article pairs in Wikipedia are not often direct translations, so methods that
+rely on HTML alignment, such as STRAND, are not appropriate. 
+Since Wikipedia provides document alignment across languages via ``interwiki''
+links, the document alignment step is unnecessary, though see \citet{Ture12} - the
+authors ignore the interwiki link structure and align documents themselves.
+While the links could be missing some article pairs, they are fairly well
+maintained by Wikipedia contributors. \NoteJS{I should compare with his data if
+possible.}
+
+\subsection{Software}
+Here we will describe the pipeline we use for mining parallel data from
+Wikipedia, and show how each of the steps can be done using the
+WikiDumpTools\footnote{TODO: Github URL} software package. We work with static
+dumps of Wikipedia to avoid constant bandwidth usage and to ensure consistent
+results across several experiments.
+
+\begin{enumerate}
+\item For each language we are working with, download the dump of all articles,
+the interwiki link table, and the redirect table
+\item Create indexed versions of each dump for quick random access
+\item Create a list of article pairs using the interwiki link tables and
+redirect tables for each language pair
+\item Iterate through the list of article pairs, retrieve their Wikitext from
+the indexed dump, and output plain text document pairs
+\end{enumerate}
+
+\paragraph{Downloading static dumps}
+Database dumps of Wikipedia can be found at {\tt dumps.wikimedia.org}. They are
+listed by language code, so ``enwiki'' is the English Wikipedia, ``eswiki'' is
+the Spanish, etc. There are many different types of database dumps here, but the
+ones we are interested in are the main articles, the interwiki link table, and
+the redirect table. These files end in ``{\tt pages-articles.xml.bz2}'',
+``{\tt langlinks.sql.gz}'', and ``{\tt redirect.sql.gz}'', respectively.
+
+\paragraph{Indexing static dumps}
+When iterating through the interwiki links, we need to quickly find articles in
+the database dumps by title. In order to do this, we build an indexed dump,
+where each entry in the index contains byte offsets for the Wikitext of an
+article.
+
+\begin{verbatim}
+python wdtools.py --index-wiki (dump file) --output indexed-wiki
+\end{verbatim}
+
+The dump file should be the file that ended in ``{\tt pages-articles.xml.bz2}''
+This command will create two files: {\tt indexed-wiki.index.gz}, which is the
+index to the dump, and {\tt indexed-wiki.dump}, which is the uncompressed
+Wikitext of all articles in the original dump. This file is uncompressed to
+allow efficient random access.
+
+\paragraph{Finding article pairs}
+The interwiki links table contains the outgoing interwiki links for the articles
+in each language. The redirect table contains a record of all redirect pages,
+which are usually spelling variants. WikiDumpTools uses the interwiki link
+tables and redirect tables from two languages to create a complete list of
+article pairs matched across languages.\footnote{The redirect tables are needed
+since the interwiki link can point to a redirect page.} Note that this list of
+article pairs is, for the most part, parallel data itself, and we explore its use in
+later chapters.
+
+\begin{verbatim}
+python wdtools.py --get-pairs (output file) --source (dump index),(interwiki
+table),(redirect table) --target (dump index),(interwiki table),(redirect table)
+\end{verbatim}
+
+``Source'' and ``target'' here refer to the source and target languages. The
+dump indexed is required because it contains a mapping from article IDs to
+article titles, and the other tables make use of both.
+
+\paragraph{Creating article pairs}
+
+Using the list of article pairs, we can now output plain text document pairs.
+
+\begin{verbatim}
+python wdtools.py --output-pairs docs-out --source-dump (indexed dump)
+--target-dump (indexed dump) --pair-list (list of article pairs)
+\end{verbatim}
+
+This will iterate through the list of article pairs, retrieve them from the
+indexed dumps, remove Wikitext markup, and create lists of documents in the
+source and target languages. Two files will be created: {\tt docs-out.source.gz}
+and {\tt docs-out.target.gz}. These files are aligned document pairs, where
+document boundaries are separated by empty lines. Note that no sentence breaking
+or word tokenization is performed.
+
+After the steps in this pipeline, comparable corpus mining techniques can be
+used on the document pairs. Software for performing this step will be described
+in later chapters.
+
+\section{Comparison to Current Parallel Resources}
+For several language pairs, there are parallel corpora already available. Some
+notable examples include Europarl \citep{Koehn05}, the U.N. Corpus
+\citep{MultiUN}. In addition to these
+multilingual corpora, there are many parallel corpora for specific language
+pairs. For the most part, the language pairs that recieved the most attention
+are European languages, Arabic, and Chinese paired with English.
+
+In this section, we will compare the amount of existing parallel data for many
+language pairs with the amount of comparable data available from our two
+sources, CommonCrawl and Wikipedia. This is meant to give an estimate of how
+much parallel data we can expect to mine from these sources. To estimate the
+amount of existing parallel data, we use OPUS, a freely available collection of
+parallel data \citep{OPUS}. Table \ref{tab:opus_data} shows the amount of existing
+parallel data for selected languages paired with English. \NoteJS{I will have to
+double check these carefully, since there are a few corpora I know of that are
+missing, and older versions of Europarl are used in the counts. The counts are
+also dominated by the OpenSubtitles corpus, which people rarely use.}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|r||r|r|r|r|r|}
+\hline
+& \textbf{BG} & \textbf{CS} & \textbf{DE} & \textbf{ES} & \textbf{FR} \\
+\hline
+Segments      & 18.5M  & 22.8M  & 8.3M   & 51.5M  & 39.7M  \\
+\hline
+Source Tokens & 137.6M & 153.7M & 92.1M  & 361.4M & 247.6M \\
+\hline
+Target Tokens & 163.7M & 187.9M & 100.9M & 331.0M & 235.7M \\
+\hline
+\hline
+& \textbf{JA} & \textbf{KO} & \textbf{RU} & \textbf{UR} & \\
+\hline
+Segments      & 0.5M  & 0.1M  & 18.3M   & 1.0K  & \\
+\hline
+Source Tokens & 5.4M  & 3.8M  & 48.5M   & 2.6M  & \\
+\hline
+Target Tokens & 0.5M  & 0.4M  & 39.2M   & 10.0K & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{The amount of parallel data available from OPUS \citep{OPUS} for each
+language paired with English. Source tokens are counts of the foreign language
+tokens, and target tokens are counts of the English language tokens.}
+\label{tab:opus_data}
+\end{table}
+
+Table \ref{tab:cc_data} shows the amount of parallel data mined from CommonCrawl
+on the same language pairs using the baseline system STRAND. Table
+\ref{tab:wiki_data} shows an upper bound on the amount of data that could be
+extracted from Wikipedia. The numbers shown are the sum of the number of tokens
+of the smaller article in each bilingual article pair.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|r||r|r|r|r|r|}
+\hline
+& \textbf{BG} & \textbf{CS} & \textbf{DE} & \textbf{ES} & \textbf{FR} \\
+\hline
+Segments      & 962K  & 886K  & 8.04M & 6.11M & 10.9M  \\
+\hline
+Source Tokens & 8.72M & 7.50M & 83.9M & 75.4M & 135M \\
+\hline
+Target Tokens & 8.53M & 7.95M & 88.4M & 68.8M & 121M \\
+\hline
+\hline
+& \textbf{JA} & \textbf{KO} & \textbf{RU} & \textbf{UR} & \\
+\hline
+Segments      & 1.80M  & 787K   & 3.86M   & 59.7K & \\
+\hline
+Source Tokens & 9.59M  & 6.57M  & 36.6M   & 828K & \\
+\hline
+Target Tokens & 19.1M  & 7.42M  & 37.2M   & 723K & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{The amount of parallel data mined from CommonCrawl for each
+language paired with English. Source tokens are counts of the foreign language
+tokens, and target tokens are counts of the English language tokens.}
+\label{tab:cc_data}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|r||r|r|r|r|r|}
+\hline
+& \textbf{BG} & \textbf{CS} & \textbf{DE} & \textbf{ES} & \textbf{FR} \\
+\hline
+Tokens (max)  & 19M  & 33M  & 176M & 148M & 174M  \\
+\hline
+\hline
+& \textbf{JA} & \textbf{KO} & \textbf{RU} & \textbf{UR} &\\
+\hline
+Tokens (max)  & 29M & 22M & 107M & 1.9M & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{An upper bound for the amount of parallel data from Wikipedia for each
+language paired with English.}
+\label{tab:wiki_data}
+\end{table}
+
+From the annotated Wikipedia article pairs collected by \citet{Smith10}, we can
+estimate the relationship between the upper bounds shown in Table
+\ref{tab:wiki_data} and the number of tokens of parallel data. For
+Spanish-English, the ratio is $0.35$, for German-English it is $0.22$, and for
+Bulgarian-English it is $0.18$. This is only giving us very coarse estimates of
+the amount of parallel data available, but it gives us some idea of how much
+of an improvement we can expect when adding the mined data to an existing SMT
+system.

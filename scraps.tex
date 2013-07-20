@@ -16,81 +16,6 @@ CleanEval \citep{CleanEval} is a shared task on cleaning web pages.
 % ------------------------------------------------------------------------------
 \section{Web Mining Pipeline}
 
-% Description of CommonCrawl, why we're using it
-The CommonCrawl corpus is hosted on Amazon's Simple Storage Service (S3). It can
-be downloaded to a local cluster, but the transfer cost (roughly 10 cents per
-gigabyte\footnote{TODO: S3 pricing URL}) is prohibitive. However, the data can be
-accessed freely from Amazon's Elastic Compute Cloud (EC2) or Elastic MapReduce
-(EMR) services. In our pipeline, we perform the first step of identifying
-candidate document pairs using Amazon EMR, download the resulting document
-pairs, and perform the remaining steps on our local cluster. We chose EMR
-because our candidate matching strategy fit naturally into the Map-Reduce
-framework \citep{Dean04}.
-
-The following is the pipeline we use for our STRAND \citep{Resnik03} baseline:
-
-\begin{enumerate}
-\item {\em Candidate pair selection:} Retrieve candidate document pairs from the
-CommonCrawl corpus
-\item {\em Language Identification:} Perform language identification on each
-document
-\item {\em Structural Filtering:}
-  \begin{enumerate}
-  \item Convert the HTML of each document into a sequence of start tags, end tags,
-  and text chunks
-  \item Align the linearize HTML of candidate document pairs
-  \item Decide whether to accept or reject each pair based on statistics of the
-  alignment
-  \end{enumerate}
-\item {\em Segmentation:} For each text chunk, perform sentence and word
-segmentation
-\item {\em Sentence Alignment:} For each aligned pair of text chunks, perform
-the sentence alignment method of \citet{Gale93}
-\item {\em Sentence Filtering:} Remove sentences which appear to be boilerplate
-\label{enum:strand}
-\end{enumerate}
-
-\paragraph{Candidate Pair Selection}
-Here we describe the Map-Reduce job which identifies candidate parallel
-websites. We adopt a strategy similar that of \citet{Resnik03} for finding
-candidates in the Internet Archive.
-
-The {\em mapper} operates on each website entry in the CommonCrawl data. It
-scans the URL for some indicator of its language. Specifically, we check for:
-
-\begin{enumerate}
-\item Two/three letter language codes (ISO-639)
-\item Language names in English and the language of origin \footnote{Both
-the language codes and language names are available here: {\tt
-http://www.loc.gov/standards/iso639-2/ascii\_8bits.html}}
-\item Country codes
-\end{enumerate}
-
-If any of these codes are present in a URL and surrounded by non-alphanumeric
-characters (for example: {\tt www.website.com/fr/}), this will be seen as a
-potential match. The mapper will then output the following (key, value) pair:
-
-\noindent Key: {\tt www.website.com/*/}
-\noindent Value: {\tt www.website.com/fr/}, French, (full website entry)
-
-The {\em reducer} will then recieve all websites mapped to the same
-``language independent'' URL. If two or more websites match, the reducer will
-output all matching document pairs, as long as they are not in the same
-language.
-
-This URL-based matching is a simple and inexpensive solution to the problem of
-finding candidate document pairs. The mapper will discard most, and neither the
-mapper nor the reducer do anything with the HTML of the documents aside from
-reading and writing them. More sophisticated approaches have been used
-\citep{Uszkoreit10, Ture12}, but they would be prohibitively expensive to run on
-Amazon, and the focus of this work is on finding parallel sentence pairs given
-comparable documents.
-
-% TODO: If I actually do this, change this section
-% There is another approach which would still be relatively cheap (a single Hadoop
-% iteration), but may find more document pairs.
-% Other approaches: Search for links, lang ID for each domain, etc.
-
 \paragraph{Language Identification}
 The documents from the previous step are annotated with their language, which
 was identified based only on the URL. Since searching for language codes in a
@@ -111,37 +36,6 @@ this would let me have a small results section here.}
 \NoteJS{Given Wikipedia, we could train binary classifiers for each language,
 and that may be more effective. I'll come back to this if language ID becomes a
 problem.}
-
-\paragraph{Structural Filtering}
-A major component of the STRAND system is the alignment of HTML documents. This
-alignment is used to determine which document pairs are actually parallel, and
-if they are, to align pairs of text blocks within the documents.
-
-The first step of structural filtering is to linearize the HTML. This means
-converting the DOM tree into a sequence of start tags, end tags, and chunks of
-text. Some tags (those that may be often found within text, such as ``font'' and
-``a'') are ignored during this step. Next, the tag/chunk sequences are aligned
-using dynamic programming. The objective of the alignment is to maximize the
-number of matching items.
-
-Given this alignment, \citet{Resnik03} define a small set of features which
-indicate the alignment quality. We make use of two features: the number of
-mismatched tags or chunks, and the correlation between the lengths of the
-aligned text chunks.
-
-\NoteJS{I'm not making use of these scores yet. I'll need a way to come up with
-thresholds manually, or annotate a set of webpage pairs as parallel or
-non-parallel to train a small model on these features.}
-
-\paragraph{Segmentation}
-The text chunks from the previous step may contain several sentences, so before
-the sentence alignment step we must perform sentence segmentation. We use the
-Punkt sentence breaker from NLTK \citep{nltk} to perform both sentence and word
-segmentation on each text chunk.
-
-\paragraph{Sentence Alignment}
-For each aligned text chunk pair, we perform sentence alignment using the
-algorithm of \citet{Gale93}.
 
 \paragraph{Sentence Filtering}
 Since we do not perform any boilerplate removal in earlier steps, there are many

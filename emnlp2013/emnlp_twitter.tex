@@ -3,6 +3,7 @@
 \usepackage{times}
 \usepackage{latexsym}
 \usepackage{color}
+\usepackage[normalem]{ulem}
 \setlength\titlebox{6.5cm}    % Expanding the titlebox
 
 %\newcommand{\Note}[1]{}
@@ -12,7 +13,10 @@
 
 \newcommand{\anonymize}[1]{}
 %\renewcommand{\anonymize}[1]{#1} % uncomment to de-anonymize
-
+\newcommand\adlul{\bgroup\markoverwith{\textcolor{red}{\rule[-0.5ex]{2pt}{1pt}}}\ULon}
+\newcommand\adlst{\bgroup\markoverwith{\textcolor{red}{\rule[0.5ex]{2pt}{1pt}}}\ULon}
+\newcommand{\adlmp}[1]{\marginpar{\textcolor{red}{#1}}}
+\newcommand{\adlin}[1]{\textcolor{red}{#1}}
 \title{Comparable Data on Twitter}
 
 \author{
@@ -35,7 +39,7 @@ Author 1\\
 \begin{document}
 \maketitle
 \begin{abstract}
-The accuracy of statistical machine translation (SMT) depends strongly on the
+\adlst{The} accuracy of statistical machine translation (SMT) depends strongly on the
 quantity and quality of the available training data. For training an SMT system
 we need parallel sentences - bilingual sentence pairs which
 convey the same information in both languages. Our current parallel corpora
@@ -119,16 +123,16 @@ information. Figure \ref{tab:ex_tweets} shows examples of each.
 \hline
 English & can u listen to my song please? \\
 \hline
-Spanish & puede escuchar mi canción? \\
+Spanish & puede escuchar mi canci\adlin{\'{o}}ón? \\
 \hline
 \hline
 English & RT @celtics : Kobe Bryant surpassed Michael Jordan as the all-time NBA
 \#AllStar scorer tonight.\\
 \hline
-Spanish & \#KobeBryant más puntos en \#AllStar games de todos los tiempos. :')\\
+Spanish & \#KobeBryant má\adlin{\'{a}}s puntos en \#AllStar games de todos los tiempos. :')\\
 \hline
 \end{tabular}
-\caption{Examples of intentional and coincidental translations on Twitter.}
+\caption{Examples of intentional and coincidental translations on Twitter.\adlin{Explain how you got these? User and hashtag?}}
 \label{tab:ex_tweets}
 \end{table*}
 
@@ -156,21 +160,21 @@ pairs are parallel.
 \section{Notes}
 
 \subsection{Matching Dimensions}
-We align tweets by five dimensions: author, hashtag, mention, URL, and time.
-Time alone is never used as a way to find parallel tweets - it is used to
+\adlul{We align tweets by five dimensions}\adlmp{All at once?}: author, hashtag, mention, URL, and time.
+\adlin{We never use t}\adlst{T}ime alone \adlst{is never used as a way}\adlmp{When you clean this up, use active voice} to find parallel tweets - \adlst{it is used}\adlin{we use it} to
 further filter tweets matched by another attribute.
 
 When matching tweets on the author attribute, we are attempting to find examples
 of authors translating their own tweets into one or more other languages. We
-expect that the translations will follow very shortly after the original tweet,
+expect that the translations will follow \adlul{very shortly after}\adlmp{How long?} the original tweet,
 so a large time window is not required. We can also narrow down the search for
 parallel tweets by only considering authors who regularly tweet in multiple
 languages.
 
 Hashtags are user-created topic markers. They have become used for things not
 traditionally considered topics, such as {\tt \#ff} (follow Friday), or {\tt
-\#sorrynotsorry}. We expect to find parallel tweets only from hashtags which
-are related to current events ({\tt \#goldenglobes}).
+\#sorrynotsorry}. \adlul{We expect to find parallel tweets only from hashtags which
+are related to current events}\adlmp{How do you classify as current?} ({\tt \#goldenglobes}).
 We expect hashtags whose usage spikes at the same time in multiple languages to
 be good potential sources of parallel data.
 
@@ -201,10 +205,10 @@ tweets total) as our input data. Our extraction algorithm is as follows:
 
 \begin{enumerate}
 \item Filter tweets for length and content---they must include at least five
-tokens containing alphabetical characters, and excluding Twitter markup such as
+tokens containing alphabetical characters, and excluding Twitter markup \adlul{such as}\adlmp{Be concrete. Is this everything you ignore?}
 mentions and hashtags.
 \item Perform language identification on the remaining tweets, and discard those
-not in the source or target language.
+\adlul{not in the source or target language}.\adlmp{Is there some threshold?}
 \item Index the remaining tweets by their attributes and a timestamp. The time
 stamp is created by taking the time the tweet was posted, converting it to an
 integer number of minutes, and dividing by the length of the time window (30
@@ -212,8 +216,8 @@ minutes in our experiments). Each tweet indexed by its current timestamp and the
 immediately preceding one to ensure that tweets near time window boundaries are
 correctly matched.\NoteJS{This needs a diagram to be explained clearly}
 \item Apply a supervised parallel sentence classifier \cite{Smith10} to source and target tweets
-that match on any attribute.
-\item Remove duplicated sentences pairs from the resulting parallel data. 
+that match on any attribute.\adlmp{after wikipedia chap.}
+\item Remove \adlul{duplicated sentences pairs}\adlmp{Are there many?} from the resulting parallel data.
 \end{enumerate}
 
 Table \ref{tab:data_results} shows how much parallel data we find
