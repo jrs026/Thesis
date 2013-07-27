@@ -11,6 +11,7 @@
 \usepackage{multirow} % for multirow cells in tables
 \usepackage{hhline} % allows cleaner double horizontal lines (where the vertical lines cut through)
 \usepackage[round]{natbib} % allows citet and citep
+\usepackage{ulem}
 
 %\usepackage[colorlinks,plainpages=false]{hyperref} % for links to figures, tables, sections, and references (from Zhifei/Arnab)
                                                   %%% (comment out above line for submission as it must be all black
@@ -40,85 +41,16 @@
 \newcommand{\Note}[1]{\textbf{\large\textcolor{blue}{[#1]}}}
 \newcommand{\NoteJS}[1]{\Note{#1~--JS}}
 
+\newcommand\adlul{\bgroup\markoverwith{\textcolor{red}{\rule[-0.5ex]{2pt}{1pt}}}\ULon}
+\newcommand\adlst{\bgroup\markoverwith{\textcolor{red}{\rule[0.5ex]{2pt}{1pt}}}\ULon}
+\newcommand{\adlmp}[1]{\marginpar{\textcolor{red}{#1}}}
+\newcommand{\adlin}[1]{\textcolor{red}{#1}}
+\newcommand{\adlbr}[1]{\textcolor{red}{[#1]}}
+\includeonly{chapter01-intro} % use this command to focus on whatever you're writing at the moment. I have put title/abstract behind includes as well
+
 \begin{document}
 
-\title{Parallel Sentence Discovery for Low-Resource Languages}
-
-\author{Jason R. Smith}
-\degreemonth{May}
-\degreeyear{2013}
-\dissertation
-\doctorphilosophy
-\copyrightnotice
-
-\maketitle
-
-\begin{abstract}
-Statistical machine translation (SMT) accuracy depends crucially on training
-data in the form of parallel corpora---bilingual documents that are direct
-translations of each other. Most easily accessible parallel corpora originate
-from government and news sources, covering a limited set of languages and
-domains. To expand coverage, we can discover parallel sentences in comparable
-corpora---bilingual documents about the same topic that are not direct
-translations. Though comparable corpora are extremely varied, we can exploit
-their lexical and structural cues to extract parallel sentences that improve machine
-translation. We demonstrate this on three representative parallel corpora: the
-Web, Twitter, and Wikipedia. We show in each case how their unique structure
-reveals signals that can be exploited to discover parallel sentences cheaply and
-effectively. We estimate how much data can be found by language pair and domain,
-and we show that the discovered parallel data substantially improves SMT
-performance, especially for languages and domains with low coverage.
-
-% Web
-The Web is the by far the largest source of comparable data, containing
-trillions of words and constantly growing. The greatest challenge in mining the
-Web is accessing and searching over this massive amount of data.
-We use Amazon's Elastic MapReduce and 
-Common Crawl, a publicly available web crawl, to scale up a previous mining
-approach \citep{Resnik03} to 32 terabytes of webpages. 
-%To do this affordably, we use simple URL matching
-%heuristics to find parallel webpages, then apply the STRAND algorithm
-%\citep{Resnik03} to matching webpage pairs.
-We mine 386
-million tokens of parallel data for 18 language pairs in about 24 hours for under \$500.
-The data we extracted improves SMT performance by
-0.5 BLEU on news domain test sets for several language pairs,
-and by up to 5.0 on open domain test sets for Spanish-English.
-
-% Twitter
-For an enormous, unaligned collection of documents like the Web, simple
-heuristics are sufficient for extracting large amounts of parallel data. When we
-move to smaller, more structured datasets, we can afford to take advantage of
-that structure. The next source of data we investigate is
-Twitter, a microblogging service where users post tweets (140 character
-messages) to their followers. Parallel data on Twitter may arise intentionally
-from bilingual users tweeting the same content in two languages, or incidentally
-from different users referencing the same current event. 
-We analyze several potential signals for finding parallel data: hashtags, user
-mentions, authors, and URLs.
-We use these signals to align potentially parallel tweets, and apply a
-supervised classifier to determine which pairs are actually parallel.
-
-% Wiki
-Some comparable corpora have stronger indicators of where parallel data can be
-found.
-Wikipedia, a multilingual online encyclopedia, is attractive as a
-comparable corpus because articles on the same topic are linked across languages. However,
-the articles are not parallel since they are rarely created by direct translation.
-We develop a novel sentence alignment model for these comparable article pairs which is able to
-capture document structure, allowing it to improve over the baseline which
-classifies sentence pairs independently. We extract parallel data for Spanish,
-German, and Bulgarian (paired with English), and see BLEU improvements of up to
-10 points on test sets created from Wikipedia.
-
-The data we collected from the Web, Twitter, and Wikipedia substantially improves SMT
-performance across several languages and domains. We see especially large improvements
-when testing on domains with low coverage.
-We not only find large amounts of parallel data across many
-language pairs and domains, we also release this data as a resource
-to the SMT community. Our Web data has already been used as part of the training
-sets for the Workshop on Statistical Machine Translation.
-\end{abstract}
+\include{titleandabstract}
 
 \setcounter{chapter}{0}
 \include{chapter01-intro}
@@ -135,11 +67,11 @@ sets for the Workshop on Statistical Machine Translation.
 \setcounter{chapter}{4}
 \include{chapter04-related_work}
 
-%\setcounter{chapter}{4}
+%\setcounter{chapter}{5}
 %\include{chapter05-web}
 
 % TODO: Remove this in the final version
-%\setcounter{chapter}{5}
+%\setcounter{chapter}{6}
 %\include{scraps}
 
 % TODO: Switch back to IEEE for final submission
