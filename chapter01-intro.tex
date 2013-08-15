@@ -8,16 +8,30 @@ For some language pairs, we have large amounts of this data. For example, the Ca
 Hansards are parliamentary proceedings that give us millions of words of
 French/English parallel data \citep{Germann01}. Similarly, the proceedings of
 European Union parliament are a source of parallel data for all of the languages
-of its member states \citep{Koehn05}. Outside of these government sources, we
+of its member states \citep{Koehn05}. Figure \ref{fig:europarl} contains some
+example parallel sentences from this source. Outside of these government sources, we
 also have large collections of parallel data from news agencies for some
 language pairs, such as Chinese/English \citep{Ma05}.
 However, for most language pairs, we have little to no data available.
 In addition, even when parallel
 data is available, it often does not match the domain of the data you wish to
 translate, which hurts translation quality \citep{Munteanu05}.
-\adlbr{This section needs some examples to make it crystal clear what you're
-talking about, even for a non-NLP person. Show an example in news or government, 
-and one of your other domains (wikipedia, travel, etc.)} 
+
+\begin{figure*}[ht]
+\begin{tabular}{|c|l|}
+\hline
+English & Please rise, then, for this minute' s silence. \\
+Spanish & Invito a todos a que nos pongamos de pie para guardar un minuto de
+silencio. \\
+\hline
+English & Madam President, on a point of order. \\
+Spanish & Señora Presidenta, una cuestión de procedimiento. \\
+\hline
+\end{tabular}
+\caption{Parallel sentences from the Europarl corpus. These are professionally
+translated sentences from European Parliament.}
+\label{fig:europarl}
+\end{figure*}
 
 The creation of new parallel corpora can be expensive, especially when bilingual
 speakers are rare for the language pair of interest. \citet{Germann01a}
@@ -30,15 +44,20 @@ In order to acquire more parallel data without this cost,
 researchers have looked to multilingual corpora which share some content across languages,
 but are not directly translated. Such corpora are referred to as comparable
 corpora, and examples include multilingual news feeds \citep{Munteanu05},
-Wikipedia articles \citep{Adafre06,Smith10}, and the Web
+Wikipedia articles \citep{Adafre06,Smith10} (see Figure \ref{fig:wiki}), and the Web
 \citep{Resnik99,Nie99,Chen00}. 
+
+\begin{figure*}[ht]
+\includegraphics[width=\textwidth]{images/wiki.jpg}
+\caption{An example of a Spanish/English document pair from Wikipedia.}
+\label{fig:wiki}
+\end{figure*}
 %Most work in extracting parallel sentences from
 %these corpora assumes an initial bilingual dictionary or an existing parallel
 %corpus.
 
 Comparable corpora is a broad term---\citet{Fung04a} give a more
 fine-grained categorization of multilingual corpora:
-%TODO: Make sure this is quoted properly
 \begin{enumerate}
 \item Parallel corpus: A sentence-aligned corpus containing bilingual
 translations of the same document. (Curated parallel corpora)
@@ -55,8 +74,12 @@ corpora are called comparable, and they require very different methods to mine
 for parallel data. I added examples to each category, but I'm not sure if that
 helps with the confusion.}
 \end{enumerate}
-As comparable corpora vary greatly in their structure, different methods for finding
-parallel sentences are used in each.
+This is just one way of categorizing comparable corpora---there are concievably
+many others. What is relevant for this work is how the structure of different
+comparable corpora allow us to find parallel data. For example, multilingual news feeds have
+time stamps which help us align potentially parallel documents, while Wikipedia
+contains links between articles on the same topic across languages. The methods
+we use for mining parallel data will depend primarily on the signals available.
 
 Even corpora which are generally considered as parallel require some amount of
 processing to find parallel sentences. 
@@ -182,7 +205,7 @@ $n$-grams in the hypothesis translation which are found in the reference) with a
 brevity penalty.
 The initial data, test sets, and other details vary by experiment.
 
-
+\remove{
 \section{Sentence Alignment}\adlbr{I agree that this probably does not fit here. The question is: what does? I think you might want to say something about prior art here, or otherwise fit in relevant parts of your lit review. Logically, a reader that has arrived at this point in your dissertation should understand the problem you're trying to solve at a high level, and might wonder what other approaches have been taken.}
 In this section, we will describe our task and notation.
 We will view both parallel corpora alignment and the extraction of parallel
@@ -215,3 +238,4 @@ The goal of sentence alignment is to identify which sentence pairs in the
 bilingual document pairs are parallel. We view this as a retrieval task for
 parallel sentence pairs, and so when annotated sentence alignments are present,
 we can compute precision, recall, and F-measure.
+}
