@@ -1,28 +1,17 @@
 \chapter{Related Work}
 \label{chap:related_work}
 
-Research in statistical machine translation (SMT) began as large parallel
-corpora became available. These corpora include the Canadian Hansards
+Research in SMT began as large parallel corpora became available
+\citep{Brown88,Brown90,Brown93}. These corpora include the Canadian Hansards
 (French-English parliament proceedings) and the Hong Kong Laws Corpus, among many
 others. While these corpora were parallel in the sense that they were created by
 directly translating text in one language, they were not sentence aligned. Noise
 in the form of missing data or sentences without a $1:1$ correspondence made
 alignment a non-trivial problem. This lead to the development of several
-approaches for aligning parallel corpora in the early 1990s. We will give an
-overview of these approaches in Section \ref{sec:parallel_related}.
-
-In addition to aligning parallel texts, there has also been a considerable
-amount of work done on finding parallel sentence pairs in comparable corpora. A
-comparable corpus is a multilingual collection of documents which may contain
-parallel sentences, but is not completely parallel. This broad definition
-includes both weakly aligned data such as timestamped multilingual news feeds,
-and Wikipedia articles linked at the document level. Depending on the type of
-comparable corpus, different methods may be more or less effective for finding
-parallel sentences. We will split our review of comparable corpora mining
-methods into two categories. In Section \ref{sec:noisy_related}, we will examine
-methods used on closely aligned comparable corpora, and in Section
-\ref{sec:nonnoisy_related} we will review work on extracting parallel sentences
-from less related multilingual documents.
+approaches for aligning parallel corpora in the early 1990s. Since the problem
+of aligning noisy-parallel corpora is closely related to finding parallel
+sentences in comparable corpora, we will give an
+overview of these approaches.
 
 \section{Parallel Corpus Alignment}
 \label{sec:parallel_related}
@@ -88,6 +77,19 @@ Section \ref{sec:comparable_related}).
 
 \section{Comparable Corpus Mining}
 \label{sec:comparable_related}
+
+In addition to aligning parallel texts, there has also been a considerable
+amount of work done on finding parallel sentence pairs in comparable corpora. A
+comparable corpus is a multilingual collection of documents which may contain
+parallel sentences, but is not completely parallel. This broad definition
+includes both weakly aligned data such as timestamped multilingual news feeds,
+and Wikipedia articles linked at the document level. Depending on the type of
+comparable corpus, different methods may be more or less effective for finding
+parallel sentences. We will split our review of comparable corpora mining
+methods into two categories. In Section \ref{sec:noisy_related}, we will examine
+methods used on closely aligned comparable corpora, and in Section
+\ref{sec:nonnoisy_related} we will review work on extracting parallel sentences
+from less related multilingual documents.
 
 \subsection{Noisy Parallel Corpora}
 \label{sec:noisy_related}
@@ -178,6 +180,7 @@ pairs based on either a word alignment model or bag-of-words similarity after
 projection through a bilingual lexicon, and tune a threshold on held out data.
 
 % Sub-sentence alignment?
+\remove{
 \section{Temporary: Summaries}
 This is a temporary section containing summaries of related papers. These will
 be integrated into the above sections.
@@ -211,3 +214,4 @@ the supervised alignment chapter.
 1. Should include some basic Maxent modeling information/citations
 2. A citation on training set imbalance, or training/test mismatch
 3. Feature binning/regularization: regularization over feature networks
+}
