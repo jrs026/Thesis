@@ -1,5 +1,17 @@
-\chapter{Related Work}
+\chapter{Previous Work}
 \label{chap:related_work}
+There have been several techniques developed for finding parallel data in a
+wide range of multilingual corpora. 
+Here we will review previous work in this area in
+order to compare with the work we will present in later chapters. We will start
+with the earliest work---the alignment of manually translated corpora.
+\adlbr{Rather than think of this as a compendium of related work, 
+it might be useful to think of a more goal-oriented chapter: setting
+the stage for the rest of your dissertation. What did we know or
+not know at the outset?}
+
+\section{Parallel Corpus Alignment}
+\label{sec:parallel_related}
 
 Research in SMT began as large parallel corpora became available
 \citep{Brown88,Brown90,Brown93}. These corpora include the Canadian Hansards
@@ -12,9 +24,6 @@ approaches for aligning parallel corpora in the early 1990s. Since the problem
 of aligning noisy-parallel corpora is closely related to finding parallel
 sentences in comparable corpora, we will give an
 overview of these approaches.
-
-\section{Parallel Corpus Alignment}
-\label{sec:parallel_related}
 
 %\paragraph{Length based alignment}
 Perhaps the most well known work on parallel corpus alignment is \citet{Gale91,Gale93}.
@@ -171,7 +180,7 @@ twice as long as the other. In addition, they used a word overlap filter based
 on the bilingual dictionary used to find candidate document pairs.
 
 Given a filtered set of sentence pairs, more expensive methods of scoring
-sentence pairs can be used. \citet{Munteanu05} use a MaxEnt binary MaxEnt
+sentence pairs can be used. \citet{Munteanu05} use a binary MaxEnt
 classifier to ultimately determine whether or not a sentence pair is parallel.
 The classifier is trained on parallel data and makes used of features which are
 mostly based on word alignments. Others
