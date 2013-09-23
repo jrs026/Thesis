@@ -1,2 +1,199 @@
 \chapter{Comparable Data on Twitter}
 \label{chap:twitter}
+
+Methods for mining comparable corpora often leverage any available annotation
+which may assist in finding parallel data. 
+Many Web mining methods find parallel documents through their hyperlinks or
+URLs \citep{Nie99,Chen00,Resnik99,Resnik03,Smith13}. \citet{Munteanu05} make use of the
+publication date of news articles to narrow down the set of document pairs to
+consider. Wikipedia contains ``interwiki links'' which directly identify
+articles on the same topic in different languages, and within the articles,
+other forms of markup such as links or images can help identify which
+sentences are parallel \citep{Smith10}.
+%While some methods avoid use of any
+%annotation and work only with the text of the documents, they tend to be
+%computationaly prohibitive \citep{Uszkoreit10,Ture12}.
+
+Twitter is an interesting case, as its ``documents'' (tweets) are only 140 characters
+long, and usually a single sentence at most. Tweets also contain many
+potentially useful annotations: the author, the time it was posted, the names of
+other users mentioned, and hashtags, which are informal topic annotations
+({\tt \#worldcup}, for example). None of these are direct indicators that tweets
+are parallel or even topic-aligned, but they still are useful in narrowing
+the search space. 
+
+% Prev. Twitter work (double check)
+Previous work on mining parallel data from Twitter has used a
+manually created list of terms associated with a topic that has multilingual
+coverage \citep{Jehl12}, or searched for parallel
+data within individual tweets \citep{Ling13}. We are interested in a general
+methods for finding parallel tweets which do not require any initial knowledge
+of topics.
+
+In order to make the best use of the annotations available on Twitter, we
+characterize the different sources of parallel data. Bilingual users may post
+the same content in two languages, or directly translate another tweet. In
+addition to these intentional translations, we also find coincidental
+translations, where users independently tweet the same content about some
+current event. These different types of parallel data are found by leveraging
+different signals from Twitter. For each of these signals, we would like to
+answer a few questions: Which languages are represented? A monolingual author or
+hashtag cannot contain any parallel data. Also, how likely are we to
+find parallel data? The hashtag {\tt \#no} will likely contain both Spanish and
+English data, but not much of it will be parallel.
+
+We use these signals to align potentially parallel tweets, and apply a
+supervised classifier \citep{Munteanu05} to determine which pairs are actually parallel.
+To test the quality of this data, we include SMT experiments which compare a
+system trained with baseline data against one with our mined data added. We
+assemble a test set of parallel tweets from GlobalVoices\footnote{{\tt globalvoicesonline.org}}
+and show an improvement of X BLEU.
+
+\section{Parallel and Comparable Tweets}
+The term ``comparable corpus'' describes a wide array of multilingual corpora with varying
+degrees of correspondence. \citet{Fung04a} give a more fine-grained
+categorization based on the degree of topic-alignment and whether or not the
+corpus was created by direct translation. When searching for parallel data on
+Twitter, we will make the distinction between tweet pairs that are intentionally
+translated, and pairs that are coincidentally translations. For example, many
+Twitter users tweet the same information in multiple languages, on one or more
+feeds, which gives us intentionally translated text. Users may also
+independently tweet about some current event, and coincidentally convey the same
+information. Figure \ref{tab:ex_tweets} shows examples of each.
+
+\begin{table*}
+\begin{tabular}{|c|c|}
+\hline
+English & can u listen to my song please? \\
+\hline
+Spanish & puede escuchar mi canci\'{o}n? \\
+\hline
+\hline
+English & RT @celtics : Kobe Bryant surpassed Michael Jordan as the all-time NBA
+\#AllStar scorer tonight.\\
+\hline
+Spanish & \#KobeBryant m\'{a}s puntos en \#AllStar games de todos los tiempos. :')\\
+\hline
+\hline
+English & @NiallOfficial I love you, and do not lose faith that someday answer
+me x9.\\
+\hline
+Spanish & @NiallOfficial te amo, y no pierdo la fe de que algu ́n día me
+respondas.\\
+\hline
+\end{tabular}
+\caption{Examples of intentional and coincidental translations on Twitter. The
+first pair of tweets came from the same author, the second contained the
+same hashtag ({\tt \#AllStar}), and the third contained the same mention ({\tt
+@NiallOfficial}).}
+\label{tab:ex_tweets}
+\end{table*}
+
+Naturally, we would expect different annotations on Twitter to be useful when
+searching for intentional or coincidental translations. Looking at the author of
+the tweet is important when searching for intentional translations. Other forms
+of annotation, such as mentions, hashtags, and URLs are useful for aligning tweets by
+topic. One important signal for finding any type of translation is the timestamp - we
+expect translations to be published within a short timespan after the original
+tweet.
+
+Since we can't afford to search over all possible pairs of tweets, we use these
+signals to narrow down the search space.
+Similar to \citet{Munteanu05}, we use a sliding window when considering
+candidate pairs of parallel tweets. In addition to this time-based matching, we
+also require tweets to match in either their author, mention, hashtag, or URL to be
+considered parallel.
+We apply language identification \citep{Bergsma12} on matching sets of tweets to
+further filter potential pairs to those in the correct source/target languages.
+
+Once we have a filtered set of candidate pairs, we use the supervised classifier
+of \citet{Smith10}, trained on their annotated Wikipedia data, to determine which
+pairs are parallel.
+
+\section{Notes}
+
+\subsection{Matching Dimensions}
+We align tweets by five dimensions: author, hashtag, mention, URL, and time.
+We never use time alone to find parallel tweets - we use it to
+further filter tweets matched by another attribute.
+
+When matching tweets on the author attribute, we are attempting to find examples
+of authors translating their own tweets into one or more other languages. We
+expect that the translations will follow within a few minutes of the original tweet,
+so a large time window is not required. We can also narrow down the search for
+parallel tweets by only considering authors who regularly tweet in multiple
+languages.
+
+Hashtags are user-created topic markers. They have become used for things not
+traditionally considered topics, such as {\tt \#ff} (follow Friday), or {\tt
+\#sorrynotsorry}. We expect to find parallel tweets only from hashtags which
+are related to current events, such as awards ceremonies ({\tt \#goldenglobes}),
+sporting events ({\tt \#allstars}), and elections ({\tt \#Obama2012}).
+We expect hashtags whose usage spikes at the same time in multiple languages to
+be good potential sources of parallel data.
+
+Tweets containing the same mentions ({\tt @user}) are not expected to be
+parallel unless the user being mentioned is some public figure which many users
+are likely to talk about. Actors, atheletes, and politicians are good potential
+candidates for having a large multi-lingual following. We look for users who
+have a high follower count and frequent mentions in our sample of tweets.
+
+URLs are one source of matching tweets that is potentially independent of time:
+two users may see an article at different times and tweet summaries in different
+languages. Tweets containing the same URL are relatively rare, so even though
+this is a strong signal that the tweets convey the same information, we don't
+find large amounts of parallel data from this attribute.
+
+There are some other attributes included in tweets which we decided not to use
+for matching. When a tweet is created as a reply, it contains a reference to the
+original. It also automatically includes a mention of the user being replied to,
+so reply information was left out as redundant. Other metadata associated with a
+tweet, such as the number of favorites, are not useful in matching potentially
+parallel tweets.
+% TODO: Check the auto-mention in replies
+
+
+\section{Results}
+We use a collection of tweets from Twitter's sample stream from 2012 (X
+tweets total) as our input data. Our extraction algorithm is as follows:
+
+\begin{enumerate}
+\item Filter tweets for length and content---they must include at least five
+tokens containing alphabetical characters, and excluding Twitter markup \adlul{such as}\adlmp{Be concrete. Is this everything you ignore?}
+mentions and hashtags.
+\item Perform language identification on the remaining tweets, and discard those
+\adlul{not in the source or target language}.\adlmp{Is there some threshold?}
+\item Index the remaining tweets by their attributes and a timestamp. The time
+stamp is created by taking the time the tweet was posted, converting it to an
+integer number of minutes, and dividing by the length of the time window (30
+minutes in our experiments). Each tweet indexed by its current timestamp and the
+immediately preceding one to ensure that tweets near time window boundaries are
+correctly matched.\NoteJS{This needs a diagram to be explained clearly}
+\item Apply a supervised parallel sentence classifier \citep{Smith10} to source and target tweets
+that match on any attribute.\adlmp{after wikipedia chap.}
+\item Remove \adlul{duplicated sentences pairs}\adlmp{Are there many?} from the resulting parallel data.
+\end{enumerate}
+
+Table \ref{tab:data_results} shows how much parallel data we find
+for Spanish-English.
+
+\begin{table*}[ht]
+\begin{center}
+\begin{tabular}{|c||c|c|}
+\hline
+Language & Segments & Tokens \\
+\hline
+\hline
+English & 64,985 & 1,210,051 \\
+\hline
+Spanish & 64,985 & 1,158,787 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{The amount of English-Spanish parallel data mined from our sample of
+tweets from 2012. While it is possible that a single tweet may contain more than
+one sentence, we are treating each tweet as its own segment.}
+\label{tab:tweet_data_results}
+\end{table*}
+
+\section{Conclusions}
