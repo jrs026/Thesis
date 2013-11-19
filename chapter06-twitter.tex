@@ -14,6 +14,48 @@ sentences are parallel \citep{Smith10}.
 %annotation and work only with the text of the documents, they tend to be
 %computationaly prohibitive \citep{Uszkoreit10,Ture12}.
 
+\section{Related Work}
+% Doc similarity (Munteanu, Fung)
+The Gigaword corpus contains news feeds in multiple languages, and is annotated
+with the date of publication. Since these news articles are potentially on the
+same topic, there are potentially parallel sentence pairs in these articles.
+\citet{Munteanu04,Munteanu05, Fung04a, Fung04b} make use of this information to
+find comparable document pairs. The basic strategy is to first consider all
+bilingual article pairs published within a time window to be potentially
+comparable. Then, documents in one language are projected through a bilingual
+dictionary, and bag-of-words based document similarity measures are used to
+prune this large set of document pairs. This requires either existing parallel
+data or at least a bilingual dictionary. Document pairs that pass through these
+filter are then mined for parallel sentences.
+
+% STRAND
+Multilingual websites are another potential source for comparable or parallel
+document pairs. STRAND \citep{Resnik03} used some heuristics for identifying
+links between versions of the same website in different languages. This provides
+a candidate set of document pairs, which are further filtered by looking at
+their HTML structure. Each website is converted into a list of start tags, end
+tags, and ``chunks'' (text within a tag), and these lists are aligned using
+standard dynamic programming techniques. This alignment is not only used to
+determine whether a pair of websites is comparable, but it also gives an
+alignment of text chunks which greatly narrows down the space of possible
+sentence alignments
+
+A drastically different approach for finding parallel web pages is given by 
+\citet{Uszkoreit10}. Using a existing language identification and translation
+systems, they identify the language of all webpages and translate the
+non-English ones into English. Since all documents are now in the same language,
+the problem of identifying comparable webpages is treated as near-duplicate
+detection. An index is built mapping $n$-grams to documents, and this index is
+used to find a bag-of-$n$-grams score for potentially comparable documents. The
+computation is kept feasible by only creating index entries for rare $n$-grams.
+
+\citet{Ture12} used cross-lingual information retrieval techniques to find
+comparable document pairs in Wikipedia. While Wikipedia already provides
+annotated comparable document pairs through interwiki links, the authors
+consider all possible German-English article pairs as potentially containing
+comparable data.
+
+\subsection{Twitter}
 Twitter is an interesting case, as its ``documents'' (tweets) are only 140 characters
 long, and usually a single sentence at most. Tweets also contain many
 potentially useful annotations: the author, the time it was posted, the names of

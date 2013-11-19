@@ -25,6 +25,9 @@ short, conversational text found on Twitter.
 Figure \ref{fig:europarl_twitter} gives some example parallel sentences from
 Europarl as well as Twitter, showing the drastic difference in vocabulary and
 syntax that can be found across domains.
+\adlbr{This is good: it has all the right pieces in it. You might want 
+to reorganize a bit, and also briefly situate SMT as the technology that
+drives services like Google Translate.}
 
 \begin{figure*}[ht]
 \begin{tabular}{|c|l|}
@@ -49,7 +52,7 @@ English & \tiny RT @celtics : Kobe Bryant surpassed Michael Jordan as the all-ti
 Spanish & \tiny \#KobeBryant m\'{a}s puntos en \#AllStar games de todos los tiempos. :')\\
 \hline
 \end{tabular}
-\caption{Parallel sentences from the European parliament and Twitter. The
+\caption{\adlbr{Do not use small fonts in table} Parallel sentences from the European parliament and Twitter. The
 Twitter data was selected from automatically mined data (see Chapter
 \ref{chap:twitter}). While the Europarl sentences are well-formed and
 grammatical, the sentences found on Twitter contain abbreviations, lack
@@ -77,7 +80,7 @@ The creation of new parallel corpora can be expensive, especially when bilingual
 speakers are rare for the language pair of interest. \citet{Germann01a}
 investigated the costs of collecting enough data to build Tamil/English SMT
 system. They found that professionally translated data would cost $\$0.36$ per
-word. \citet{Germann01a} and others \citep{Zaidan11} were able to reduce the
+word. \citet{Germann01a} and \adlst{others} \citep{Zaidan11}\adlbr{->citet}\adlbr{Use parallel syntactic structure across conjunctions. If there are many references on a topic and you are just giving a couple of highlights, you can follow with the Latin \emph{inter alia}} were able to reduce the
 cost of creating parallel corpora by looking to non-professional translators,
 but the cost is still around $\$0.10$ per word.
 In order to acquire more parallel data without this cost,
@@ -89,7 +92,11 @@ Wikipedia articles \citep{Adafre06,Smith10} (see Figure \ref{fig:wiki}), and the
 
 \begin{figure*}[ht]
 \includegraphics[width=\textwidth]{images/wiki.jpg}
-\caption{An example of a Spanish/English document pair from Wikipedia.}
+\caption{An example of a Spanish/English document pair from Wikipedia.
+\adlbr{Say more about what this example is showing, either here or in the
+text. What does this illustrated about parallelism or comparable-ness?
+The different font styles are distracting, unless you mean them to illustrate
+some point.}}
 \label{fig:wiki}
 \end{figure*}
 
@@ -98,7 +105,7 @@ Even corpora which are generally considered as parallel require some amount of
 processing to find parallel sentences. 
 A translator may chose to translate a compound sentence as two sentences, or
 vice-versa, so naively assuming that sentences are aligned in order will not
-work.
+work.\adlbr{Example?}
 Also, there may be large insertions or deletions of sentences even in curated
 sources of parallel data, such as the Canadian Hansards \citep{Gale93,Chen93}.
 Sentence-aligning these corpora does not require existing parallel data or a
@@ -116,7 +123,7 @@ Try reading the chapter, skipping this one completely. There's a pretty
 nice flow from the previous to the next.}
 \NoteJS{I moved it up and modified it to fit better.}
 
-To give a better idea of the variety of comparable corpora, we will consider the
+To give a better idea of the variety of comparable corpora, \adlst{we will} consider the
 categorization of multilingual corpora given by \citet{Fung04a}:
 \begin{enumerate}
 \item Parallel corpus: A sentence-aligned corpus containing bilingual
@@ -151,6 +158,10 @@ to the microblogging medium (Chapter \ref{chap:twitter}). Finally, we introduce 
 model for mining parallel data from Wikipedia which takes advantage of its
 fine-grained topic alignment (Chapter \ref{chap:supervised}).
 \NoteJS{I will come back to this ordering as I get to the other chapters.}
+\adlbr{I feel like I missed something here: you're mining parallel corpora 
+from comparable corpora? I think you want to illustrate the idea of 
+``parallel sentence discovery'' with an example somewhere early in 
+the text, to make the task clear.}
 
 \section{What counts as parallel?}
 \label{sec:what_is_parallel}
@@ -164,7 +175,9 @@ language. Some examples of the ambiguity inherent in translation are explored by
 Even ignoring the cross-lingual issues, comparing the meaning of two sentences
 in the same language is still quite difficult---this is essentially the task of recognizing textual
 entailment (RTE) \citep{Dagan10}.\footnote{RTE involves determining whether or
-not one piece of text can be inferred from another.}
+not one piece of text can be inferred from another.\adlbr{Assume the reader does
+not know what RTE is -- then this shouldn't be a footnote, just a brief
+explanatory aside.}}
 SMT evaluation metrics
 \citep{Papineni02,Banerjee05,Snover06} must also address this problem when
 comparing a hypothesis translation to a reference.
@@ -189,7 +202,7 @@ intrinsic or extrinsic performance. Intrinsic evaluation directly measures the
 quantity and quality of parallel data we extract, while extrinsic evaluation is
 only concerned with how the new parallel data improves SMT performance.
 In order to perform intrinsic evaluation, we need some criteria for determining whether or not a bilingual
-sentence pair is parallel. This is easy if we use parallel data, but
+sentence pair is parallel. This is easy if we use parallel data,\adlbr{how?} but
 it is preferable to evaluate our methods on the same corpora that we are
 extracting data from. When designing the criteria for judging parallel
 sentences, we focus on our extrinsic goal: improving SMT performance. If a sentence pair
@@ -224,10 +237,10 @@ model \citep{Chiang05,Quirk05,Liu06,Galley06}.
 \item For each parallel sentence, word-to-word correspondences are found. This
 step is called word-alignment, and it is usually done with unsupervised methods
 \citep{Brown93,Vogel96}.
-\item Pairs of phrases, or other multi-word units, are extracted from the
+\item \adlst{Give the intuition here: you're creating a stastical bilingual dictionary} Pairs of phrases, or other multi-word units, are extracted from the
 word-aligned sentence pairs to form a translation model. Figure
 \ref{fig:phrase_align} gives an example of an extracted phrase pair.
-\item A language model is created from large amounts of monolingual data in the
+\item A \adlin{statistical} language model is created from large amounts of monolingual data in the
 ``target'' language (the language which text is translated into). This includes
 the target side of the parallel training data.
 \end{enumerate}
@@ -240,6 +253,8 @@ the target side of the parallel training data.
 
 There are additional details in each model, but the main effects of adding new
 parallel data are additional inputs to the translation and language models.
+\adlbr{Now to drive the point home, you might refer back to your motivating
+example: many words in the Twitter example will be OOV, etc.}
 
 \section{Evaluation Pipeline}
 Our evaluation setup is identical across chapters---we start with {\em initial}
@@ -275,7 +290,7 @@ system.
 In all experiments, the BLEU metric \citep{Papineni02} is used to evaluate SMT
 performance. It is the most commonly used evaluation metric, allowing us to
 easily compare with other work.
-The BLEU metric combines $n$-gram precision (the percentage of
+The BLEU metric combines $n$-gram precision \adlbr{What are n-grams?} (the percentage of
 $n$-grams in the hypothesis translation which are found in the reference) with a
 brevity penalty. The exact formula is:
 \begin{equation}
@@ -284,6 +299,23 @@ brevity penalty. The exact formula is:
 where $r$ and $c$ are the reference and hypothesis lengths, and $p_n$ is the
 $n$-gram precision.
 The initial data, test sets, and other details vary by experiment.
+
+\adlbr{I think you want to reiterate here that you're essentially defining
+a concrete, measurable notion of ``parallelness'': it makes the BLEU score go up.
+Then, overall, this chapter nicely conveys several key high-level points:
+It situates parallel and comparable corpora and their importance to MT.
+It motivates the task of ``parallel sentence discovery''.
+It motivates a concrete, functional definition of success.
+It gives a high-level picture of how you're going to do the task.
+I felt like this was the least developed part of the chapter. 
+Give some examples.
+This is exactly what you want out of the opening chapter of a thesis.
+A question back to you is: should it be reorganized as I have it above?
+(i.e. should some detail about your method of attack come after you've
+described an extrinsic evaluation?)
+This raises the following question, for me: if parallelness is defined
+extrinsically, why wouldn't you use an obvious baseline for your comparable
+data of just throwing in all sentence pairs?}
 
 \remove{
 \section{Sentence Alignment}\adlbr{I agree that this probably does not fit here. The question is: what does? I think you might want to say something about prior art here, or otherwise fit in relevant parts of your lit review. Logically, a reader that has arrived at this point in your dissertation should understand the problem you're trying to solve at a high level, and might wonder what other approaches have been taken.}

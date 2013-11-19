@@ -7,6 +7,62 @@ comparable documents, and use a conditional random field \citep{Lafferty01} as
 the sentence alignment model. We also apply a discriminative monotonic alignment model to
 comparable documents mined from the Web as described by \citet{Uszkoreit10}.
 
+\section{Related Work}
+\label{sec:comparable_related}
+
+In addition to aligning parallel texts, there has also been a considerable
+amount of work done on finding parallel sentence pairs in comparable corpora. A
+comparable corpus is a multilingual collection of documents which may contain
+parallel sentences, but is not completely parallel.\adlbr{This seems repetetive, given intro.} 
+This broad definition
+includes both weakly aligned data such as timestamped multilingual news feeds,
+and Wikipedia articles linked at the document level. Depending on the type of
+comparable corpus, different methods may be more or less effective for finding
+parallel sentences. We will split our review of comparable corpora mining
+methods into two categories. In Section \ref{sec:noisy_related}, we will examine
+methods used on closely aligned comparable corpora, and in Section
+\ref{sec:nonnoisy_related} we will review work on extracting parallel sentences
+from less related multilingual documents.
+
+\subsection{Noisy Parallel Corpora}
+\label{sec:noisy_related}
+The first category of work on comparable corpora mining that we will review is
+on noisy parallel data. While even corpora called ``parallel'' contain some
+noise, we are refering to corpora which the methods in Section
+\ref{sec:parallel_related} would fail on.
+
+Similar to the dynamic programming approaches explored in Section
+\ref{sec:parallel_related}, \citet{Zhao02} used a dynamic programming strategy
+for aligning parallel sentences in a document pair. They create a probabilistic
+model of a comparable document pair $P(S,T,A)$ and choose an alignment to
+maximize the probability of the observed source and target documents. To
+estimate the probability of two sentences being aligned, they used and IBM-style 
+word alignment models (Model 3, specifically) which were estimated on existing
+parallel data. \citet{Zhao02} also describes a bootstraping approach where high
+confidence sentence alignments are added to the training data for the word
+alignment model, and then sentence alignments are recomputed. Much of the work
+on noisy parallel/comparable corpora mining used this technique 
+\citep{Fung04a,Fung04b,Wu05,Munteanu05}.
+
+\subsection{Finding Parallel Sentences}
+Once comparable document pairs have been identified, most comparable corpora
+extraction methods will independently judge each sentence pair as parallel or
+non-parallel. Since there is often a very large amount of document pairs and
+thus potential sentence pairs, filters are used to prune out sentence pairs that
+are highly unlikely to be parallel. For example, \citet{Munteanu05} used a
+sentence length filter to remove sentence pairs where one sentence was more than
+twice as long as the other. In addition, they used a word overlap filter based
+on the bilingual dictionary used to find candidate document pairs.
+
+Given a filtered set of sentence pairs, more expensive methods of scoring
+sentence pairs can be used. \citet{Munteanu05} use a binary MaxEnt
+classifier to ultimately determine whether or not a sentence pair is parallel.
+The classifier is trained on parallel data and makes used of features which are
+mostly based on word alignments. Others
+\cite{Fung04a,Fung04b,Tillmann09a,Tillmann09b} use a single score for sentence
+pairs based on either a word alignment model or bag-of-words similarity after
+projection through a bilingual lexicon, and tune a threshold on held out data.
+
 \section{Wikipedia as a Comparable Corpus}
 \label{sec:wiki}
 Wikipedia \citep{wikipedia} is an online collaborative encyclopedia available in
